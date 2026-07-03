@@ -32,11 +32,11 @@ import { resolveHeatingSystemType } from "../utils/device-utils";
 import type { RsOverrideSection } from "./rs-override-section";
 
 const CONTROL_DOCS_URL =
-  "https://github.com/snazzybean/roommind/blob/main/docs/control-and-devices.md";
+  "https://github.com/findhamza/Roommind-Centralized-Control/blob/main/docs/control-and-devices.md";
 
 type EditableSection = "schedule" | "devices" | "sensors" | "presence" | "covers" | "heatSource";
 
-@customElement("rs-room-detail")
+@customElement("rmc-room-detail")
 export class RsRoomDetail extends LitElement {
   @property({ attribute: false }) public area!: HassArea;
   @property({ attribute: false }) public config: RoomConfig | null = null;
@@ -373,7 +373,7 @@ export class RsRoomDetail extends LitElement {
 
     return html`
       <div class="detail-layout">
-        <rs-hero-status
+        <rmc-hero-status
           .hass=${this.hass}
           .area=${this.area}
           .config=${this.config}
@@ -381,45 +381,45 @@ export class RsRoomDetail extends LitElement {
           .overrideInfo=${this._getEffectiveOverride()}
           .climateControlActive=${this.climateControlActive && this._climateControlEnabled}
           @display-name-changed=${this._onDisplayNameChanged}
-        ></rs-hero-status>
+        ></rmc-hero-status>
 
         <div class="detail-grid">
           ${!this._isOutdoor
             ? html`
-                <rs-toggle-card
+                <rmc-toggle-card
                   icon="mdi:power"
                   .label=${localize("room.climate_control_toggle", this.hass.language)}
                   .hint=${localize("room.climate_control_hint", this.hass.language)}
                   .checked=${this._climateControlEnabled}
                   @toggle-changed=${this._onClimateControlToggle}
-                ></rs-toggle-card>
+                ></rmc-toggle-card>
 
-                <rs-section-card
+                <rmc-section-card
                   icon="mdi:cog"
                   .heading=${localize("room.section.climate_mode", this.hass.language)}
                 >
-                  <rs-info-icon slot="header-extras">
+                  <rmc-info-icon slot="header-extras">
                     <b>${localize("mode.auto", this.hass.language)}</b> —
                     ${localize("mode.auto_desc", this.hass.language)}<br />
                     <b>${localize("mode.heat_only", this.hass.language)}</b> —
                     ${localize("mode.heat_only_desc", this.hass.language)}<br />
                     <b>${localize("mode.cool_only", this.hass.language)}</b> —
                     ${localize("mode.cool_only_desc", this.hass.language)}
-                  </rs-info-icon>
-                  <rs-climate-mode-selector
+                  </rmc-info-icon>
+                  <rmc-climate-mode-selector
                     .climateMode=${this._climateMode}
                     .language=${this.hass.language}
                     @mode-changed=${this._onModeChanged}
-                  ></rs-climate-mode-selector>
-                </rs-section-card>
+                  ></rmc-climate-mode-selector>
+                </rmc-section-card>
 
-                <rs-section-card
+                <rmc-section-card
                   icon="mdi:calendar"
                   .heading=${localize("room.section.schedule", this.hass.language)}
                   editable
                   @edit-click=${this._openEdit("schedule")}
                 >
-                  <rs-schedule-settings
+                  <rmc-schedule-settings
                     .hass=${this.hass}
                     .schedules=${this._schedules}
                     .scheduleSelectorEntity=${this._scheduleSelectorEntity}
@@ -436,10 +436,10 @@ export class RsRoomDetail extends LitElement {
                     @comfort-cool-changed=${this._onComfortCoolChanged}
                     @eco-heat-changed=${this._onEcoHeatChanged}
                     @eco-cool-changed=${this._onEcoCoolChanged}
-                  ></rs-schedule-settings>
+                  ></rmc-schedule-settings>
                   ${this.config
                     ? html`
-                        <rs-override-section
+                        <rmc-override-section
                           .hass=${this.hass}
                           .config=${this.config}
                           .climateMode=${this._climateMode}
@@ -448,21 +448,21 @@ export class RsRoomDetail extends LitElement {
                           .ecoHeat=${this._ecoHeat}
                           .ecoCool=${this._ecoCool}
                           .language=${this.hass.language}
-                        ></rs-override-section>
+                        ></rmc-override-section>
                       `
                     : nothing}
-                </rs-section-card>
+                </rmc-section-card>
               `
             : nothing}
           ${!this._isOutdoor
             ? html`
-                <rs-section-card
+                <rmc-section-card
                   icon="mdi:power-plug"
                   .heading=${localize("room.section.devices", this.hass.language)}
                   editable
                   @edit-click=${this._openEdit("devices")}
                 >
-                  <rs-device-section
+                  <rmc-device-section
                     .hass=${this.hass}
                     .area=${this.area}
                     .editing=${false}
@@ -472,16 +472,16 @@ export class RsRoomDetail extends LitElement {
                     .valveProtectionEnabled=${this.valveProtectionEnabled}
                     @device-changed=${this._onDeviceChanged}
                     @valve-protection-exclude-toggle=${this._onValveProtectionExcludeToggle}
-                  ></rs-device-section>
-                </rs-section-card>
+                  ></rmc-device-section>
+                </rmc-section-card>
 
-                <rs-section-card
+                <rmc-section-card
                   icon="mdi:thermometer"
                   .heading=${localize("room.section.sensors", this.hass.language)}
                   editable
                   @edit-click=${this._openEdit("sensors")}
                 >
-                  <rs-sensor-section
+                  <rmc-sensor-section
                     .hass=${this.hass}
                     .area=${this.area}
                     .editing=${false}
@@ -494,21 +494,21 @@ export class RsRoomDetail extends LitElement {
                     .heatingSystemType=${resolveHeatingSystemType(this._devices)}
                     .language=${this.hass.language}
                     @sensor-changed=${this._onSensorChanged}
-                  ></rs-sensor-section>
-                </rs-section-card>
+                  ></rmc-sensor-section>
+                </rmc-section-card>
 
                 ${this.presenceEnabled && this.presencePersons.length > 0
-                  ? html`<rs-section-card
+                  ? html`<rmc-section-card
                       icon="mdi:home-account"
                       .heading=${localize("room.section.presence", this.hass.language)}
                       editable
                       @edit-click=${this._openEdit("presence")}
                     >
-                      <rs-info-icon
+                      <rmc-info-icon
                         slot="header-extras"
                         .text=${localize("presence.ignore_hint", this.hass.language)}
-                      ></rs-info-icon>
-                      <rs-presence-section
+                      ></rmc-info-icon>
+                      <rmc-presence-section
                         .hass=${this.hass}
                         .presenceEnabled=${this.presenceEnabled}
                         .presencePersons=${this.presencePersons}
@@ -518,13 +518,13 @@ export class RsRoomDetail extends LitElement {
                         .language=${this.hass.language}
                         @presence-persons-changed=${this._onPresencePersonsChanged}
                         @ignore-presence-changed=${this._onIgnorePresenceChanged}
-                      ></rs-presence-section>
-                    </rs-section-card>`
+                      ></rmc-presence-section>
+                    </rmc-section-card>`
                   : nothing}
               `
             : nothing}
           ${!this._isOutdoor
-            ? html`<rs-section-card
+            ? html`<rmc-section-card
                 icon="mdi:blinds-horizontal"
                 .heading=${localize("room.section.covers", this.hass.language)}
                 .badge=${localize("badge.beta", this.hass.language)}
@@ -532,7 +532,7 @@ export class RsRoomDetail extends LitElement {
                 editable
                 @edit-click=${this._openEdit("covers")}
               >
-                <rs-covers-section
+                <rmc-covers-section
                   .hass=${this.hass}
                   .area=${this.area}
                   .editing=${false}
@@ -556,20 +556,20 @@ export class RsRoomDetail extends LitElement {
                   .coverMinPositions=${this._coverMinPositions}
                   @covers-toggle=${this._onCoversToggle}
                   @setting-changed=${this._onCoverSettingChanged}
-                ></rs-covers-section>
-              </rs-section-card>`
+                ></rmc-covers-section>
+              </rmc-section-card>`
             : nothing}
           ${!this._isOutdoor &&
           this._selectedTempSensor &&
           this._devices.some((d) => d.type === "trv") &&
           this._devices.some((d) => d.type === "ac")
-            ? html`<rs-section-card
+            ? html`<rmc-section-card
                 icon="mdi:swap-horizontal"
                 .heading=${localize("room.section.heat_source", this.hass.language)}
                 editable
                 @edit-click=${this._openEdit("heatSource")}
               >
-                <rs-heat-source-section
+                <rmc-heat-source-section
                   .hass=${this.hass}
                   .editing=${false}
                   .enabled=${this._heatSourceOrchestration}
@@ -577,17 +577,17 @@ export class RsRoomDetail extends LitElement {
                   .outdoorThreshold=${this._heatSourceOutdoorThreshold}
                   .acMinOutdoor=${this._heatSourceAcMinOutdoor}
                   @setting-changed=${this._onHeatSourceSettingChanged}
-                ></rs-heat-source-section>
-              </rs-section-card>`
+                ></rmc-heat-source-section>
+              </rmc-section-card>`
             : nothing}
 
-          <rs-toggle-card
+          <rmc-toggle-card
             icon="mdi:tree"
             .label=${localize("room.outdoor_toggle", this.hass.language)}
             .hint=${localize("room.outdoor_hint", this.hass.language)}
             .checked=${this._isOutdoor}
             @toggle-changed=${this._onOutdoorToggle}
-          ></rs-toggle-card>
+          ></rmc-toggle-card>
         </div>
         ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
         ${this._renderEditDialog()}
@@ -601,7 +601,7 @@ export class RsRoomDetail extends LitElement {
 
     switch (this._editing) {
       case "schedule":
-        return html`<rs-edit-dialog
+        return html`<rmc-edit-dialog
           open
           icon="mdi:calendar"
           .heading=${localize("room.section.schedule", lang)}
@@ -657,7 +657,7 @@ export class RsRoomDetail extends LitElement {
             </p>
             <p>${unsafeHTML(localize("schedule.help_multi", lang))}</p>
           </div>
-          <rs-schedule-settings
+          <rmc-schedule-settings
             .hass=${this.hass}
             .schedules=${this._schedules}
             .scheduleSelectorEntity=${this._scheduleSelectorEntity}
@@ -674,10 +674,10 @@ export class RsRoomDetail extends LitElement {
             @comfort-cool-changed=${this._onComfortCoolChanged}
             @eco-heat-changed=${this._onEcoHeatChanged}
             @eco-cool-changed=${this._onEcoCoolChanged}
-          ></rs-schedule-settings>
-        </rs-edit-dialog>`;
+          ></rmc-schedule-settings>
+        </rmc-edit-dialog>`;
       case "devices":
-        return html`<rs-edit-dialog
+        return html`<rmc-edit-dialog
           open
           icon="mdi:power-plug"
           .heading=${localize("room.section.devices", lang)}
@@ -701,7 +701,7 @@ export class RsRoomDetail extends LitElement {
               ${localize("common.learn_more", lang)}
             </a>
           </div>
-          <rs-device-section
+          <rmc-device-section
             .hass=${this.hass}
             .area=${this.area}
             .editing=${true}
@@ -711,16 +711,16 @@ export class RsRoomDetail extends LitElement {
             .valveProtectionEnabled=${this.valveProtectionEnabled}
             @device-changed=${this._onDeviceChanged}
             @valve-protection-exclude-toggle=${this._onValveProtectionExcludeToggle}
-          ></rs-device-section>
-        </rs-edit-dialog>`;
+          ></rmc-device-section>
+        </rmc-edit-dialog>`;
       case "sensors":
-        return html`<rs-edit-dialog
+        return html`<rmc-edit-dialog
           open
           icon="mdi:thermometer"
           .heading=${localize("room.section.sensors", lang)}
           @rs-dialog-closed=${this._closeEdit}
         >
-          <rs-sensor-section
+          <rmc-sensor-section
             .hass=${this.hass}
             .area=${this.area}
             .editing=${true}
@@ -733,10 +733,10 @@ export class RsRoomDetail extends LitElement {
             .heatingSystemType=${resolveHeatingSystemType(this._devices)}
             .language=${this.hass.language}
             @sensor-changed=${this._onSensorChanged}
-          ></rs-sensor-section>
-        </rs-edit-dialog>`;
+          ></rmc-sensor-section>
+        </rmc-edit-dialog>`;
       case "presence":
-        return html`<rs-edit-dialog
+        return html`<rmc-edit-dialog
           open
           icon="mdi:home-account"
           .heading=${localize("room.section.presence", lang)}
@@ -750,7 +750,7 @@ export class RsRoomDetail extends LitElement {
             <b>${localize("presence.help_ignore_title", lang)}</b><br />
             ${localize("presence.help_ignore_body", lang)}
           </div>
-          <rs-presence-section
+          <rmc-presence-section
             .hass=${this.hass}
             .presenceEnabled=${this.presenceEnabled}
             .presencePersons=${this.presencePersons}
@@ -760,10 +760,10 @@ export class RsRoomDetail extends LitElement {
             .language=${this.hass.language}
             @presence-persons-changed=${this._onPresencePersonsChanged}
             @ignore-presence-changed=${this._onIgnorePresenceChanged}
-          ></rs-presence-section>
-        </rs-edit-dialog>`;
+          ></rmc-presence-section>
+        </rmc-edit-dialog>`;
       case "covers":
-        return html`<rs-edit-dialog
+        return html`<rmc-edit-dialog
           open
           icon="mdi:blinds-horizontal"
           .heading=${localize("room.section.covers", lang)}
@@ -803,7 +803,7 @@ export class RsRoomDetail extends LitElement {
             <b>${localize("covers.info.entities_title", lang)}</b><br />
             ${localize("covers.info.entities_body", lang)}
           </div>
-          <rs-covers-section
+          <rmc-covers-section
             .hass=${this.hass}
             .area=${this.area}
             .editing=${true}
@@ -827,16 +827,16 @@ export class RsRoomDetail extends LitElement {
             .coverMinPositions=${this._coverMinPositions}
             @covers-toggle=${this._onCoversToggle}
             @setting-changed=${this._onCoverSettingChanged}
-          ></rs-covers-section>
-        </rs-edit-dialog>`;
+          ></rmc-covers-section>
+        </rmc-edit-dialog>`;
       case "heatSource":
-        return html`<rs-edit-dialog
+        return html`<rmc-edit-dialog
           open
           icon="mdi:swap-horizontal"
           .heading=${localize("room.section.heat_source", lang)}
           @rs-dialog-closed=${this._closeEdit}
         >
-          <rs-heat-source-section
+          <rmc-heat-source-section
             .hass=${this.hass}
             .editing=${true}
             .enabled=${this._heatSourceOrchestration}
@@ -844,8 +844,8 @@ export class RsRoomDetail extends LitElement {
             .outdoorThreshold=${this._heatSourceOutdoorThreshold}
             .acMinOutdoor=${this._heatSourceAcMinOutdoor}
             @setting-changed=${this._onHeatSourceSettingChanged}
-          ></rs-heat-source-section>
-        </rs-edit-dialog>`;
+          ></rmc-heat-source-section>
+        </rmc-edit-dialog>`;
     }
   }
 
@@ -1049,7 +1049,7 @@ export class RsRoomDetail extends LitElement {
 
     try {
       await this.hass.callWS({
-        type: "roommind/rooms/save",
+        type: "roommind_cc/rooms/save",
         area_id: this.area.area_id,
         devices: this._devices,
         temperature_sensor: this._selectedTempSensor,
@@ -1114,6 +1114,6 @@ export class RsRoomDetail extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-room-detail": RsRoomDetail;
+    "rmc-room-detail": RsRoomDetail;
   }
 }

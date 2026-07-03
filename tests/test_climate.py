@@ -8,12 +8,12 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from homeassistant.components.climate import ClimateEntityFeature, HVACMode
 
-from custom_components.roommind.climate import (
+from custom_components.roommind_cc.climate import (
     RoomMindOverrideClimate,
     _create_room_climates,
     async_setup_entry,
 )
-from custom_components.roommind.const import (
+from custom_components.roommind_cc.const import (
     DEFAULT_COMFORT_COOL,
     DEFAULT_COMFORT_HEAT,
     DOMAIN,
@@ -56,8 +56,8 @@ def test_unique_id_and_entity_id(mock_coordinator):
     """Climate entity has correct unique_id and entity_id."""
     coordinator, _ = mock_coordinator
     entity = RoomMindOverrideClimate(coordinator, "living_room")
-    assert entity.unique_id == "roommind_living_room_override"
-    assert entity.entity_id == "climate.roommind_living_room_override"
+    assert entity.unique_id == "roommind_cc_living_room_override"
+    assert entity.entity_id == "climate.roommind_cc_living_room_override"
 
 
 def test_hvac_mode_off_when_no_override(mock_coordinator):

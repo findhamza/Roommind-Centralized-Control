@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from custom_components.roommind.managers.window_manager import WindowManager
+from custom_components.roommind_cc.managers.window_manager import WindowManager
 
 
 def test_is_paused_default_false():
@@ -24,7 +24,7 @@ def test_is_paused_after_window_opens():
 def test_open_delay_not_yet_reached():
     """Window opens with open_delay=30, update within 30s. Not paused yet."""
     mgr = WindowManager()
-    with patch("custom_components.roommind.managers.window_manager.time") as mock_time:
+    with patch("custom_components.roommind_cc.managers.window_manager.time") as mock_time:
         # Establish room as known (window closed initially)
         mock_time.time.return_value = 900.0
         mgr.update("living_room", raw_open=False, open_delay=30, close_delay=0)
@@ -44,7 +44,7 @@ def test_open_delay_not_yet_reached():
 def test_open_delay_reached():
     """Window opens with open_delay=30, update after 30s. Now paused."""
     mgr = WindowManager()
-    with patch("custom_components.roommind.managers.window_manager.time") as mock_time:
+    with patch("custom_components.roommind_cc.managers.window_manager.time") as mock_time:
         # Establish room as known (window closed initially)
         mock_time.time.return_value = 900.0
         mgr.update("living_room", raw_open=False, open_delay=30, close_delay=0)
@@ -63,7 +63,7 @@ def test_open_delay_reached():
 def test_close_delay_not_yet_reached():
     """Window was open (paused), now closed. close_delay=30, within 30s. Still paused."""
     mgr = WindowManager()
-    with patch("custom_components.roommind.managers.window_manager.time") as mock_time:
+    with patch("custom_components.roommind_cc.managers.window_manager.time") as mock_time:
         # Open window, immediate pause
         mock_time.time.return_value = 1000.0
         mgr.update("living_room", raw_open=True, open_delay=0, close_delay=0)
@@ -85,7 +85,7 @@ def test_close_delay_not_yet_reached():
 def test_close_delay_reached():
     """Window closed, close_delay=30, update after 30s. Unpaused."""
     mgr = WindowManager()
-    with patch("custom_components.roommind.managers.window_manager.time") as mock_time:
+    with patch("custom_components.roommind_cc.managers.window_manager.time") as mock_time:
         # Open window, immediate pause
         mock_time.time.return_value = 1000.0
         mgr.update("living_room", raw_open=True, open_delay=0, close_delay=0)
@@ -154,7 +154,7 @@ def test_update_returns_paused_state():
 def test_reopen_during_close_delay():
     """Window re-opens during close delay. Should clear close timer and stay paused."""
     mgr = WindowManager()
-    with patch("custom_components.roommind.managers.window_manager.time") as mock_time:
+    with patch("custom_components.roommind_cc.managers.window_manager.time") as mock_time:
         # Open window, immediate pause
         mock_time.time.return_value = 1000.0
         mgr.update("living_room", raw_open=True, open_delay=0, close_delay=30)
@@ -219,7 +219,7 @@ def test_multiple_windows_all_closed():
 def test_window_already_open_at_startup_skips_delay():
     """Window already open on first observation (e.g. after HA restart) skips open_delay."""
     mgr = WindowManager()
-    with patch("custom_components.roommind.managers.window_manager.time") as mock_time:
+    with patch("custom_components.roommind_cc.managers.window_manager.time") as mock_time:
         mock_time.time.return_value = 1000.0
         # First observation with window already open and a large open_delay
         result = mgr.update("living_room", raw_open=True, open_delay=300, close_delay=0)
@@ -231,7 +231,7 @@ def test_window_already_open_at_startup_skips_delay():
 def test_window_opens_after_startup_respects_delay():
     """Window closed on first observation, then opens later — normal delay applies."""
     mgr = WindowManager()
-    with patch("custom_components.roommind.managers.window_manager.time") as mock_time:
+    with patch("custom_components.roommind_cc.managers.window_manager.time") as mock_time:
         # First observation: window closed
         mock_time.time.return_value = 1000.0
         mgr.update("living_room", raw_open=False, open_delay=30, close_delay=0)
@@ -250,7 +250,7 @@ def test_window_opens_after_startup_respects_delay():
 def test_window_already_open_at_startup_close_delay_still_works():
     """After startup-paused, closing respects close_delay normally."""
     mgr = WindowManager()
-    with patch("custom_components.roommind.managers.window_manager.time") as mock_time:
+    with patch("custom_components.roommind_cc.managers.window_manager.time") as mock_time:
         # Startup: window already open → immediate pause
         mock_time.time.return_value = 1000.0
         mgr.update("living_room", raw_open=True, open_delay=60, close_delay=30)
@@ -269,7 +269,7 @@ def test_window_already_open_at_startup_close_delay_still_works():
 def test_remove_room_resets_seen_state():
     """After remove_room, the next observation is treated as first again."""
     mgr = WindowManager()
-    with patch("custom_components.roommind.managers.window_manager.time") as mock_time:
+    with patch("custom_components.roommind_cc.managers.window_manager.time") as mock_time:
         mock_time.time.return_value = 1000.0
         # Initial: window open → immediate pause (first observation)
         mgr.update("living_room", raw_open=True, open_delay=60, close_delay=0)

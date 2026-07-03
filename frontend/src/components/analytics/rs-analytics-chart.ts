@@ -12,7 +12,7 @@ import {
   type ChartBuildContext,
 } from "../../utils/chart-builder";
 
-@customElement("rs-analytics-chart")
+@customElement("rmc-analytics-chart")
 export class RsAnalyticsChart extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ attribute: false }) public data: AnalyticsData | null = null;
@@ -260,6 +260,6 @@ export class RsAnalyticsChart extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-analytics-chart": RsAnalyticsChart;
+    "rmc-analytics-chart": RsAnalyticsChart;
   }
 }

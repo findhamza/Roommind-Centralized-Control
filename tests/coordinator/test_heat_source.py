@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.roommind.const import MODE_IDLE
+from custom_components.roommind_cc.const import MODE_IDLE
 
 from .conftest import (
     SAMPLE_ROOM,
@@ -43,12 +43,12 @@ class TestHeatSourceOrchestration:
 
         Verify evaluate_heat_sources is called and the plan is forwarded to async_apply.
         """
-        from custom_components.roommind.managers.heat_source_orchestrator import (
+        from custom_components.roommind_cc.managers.heat_source_orchestrator import (
             HeatSourcePlan,
         )
 
         store = _make_store_mock({"living_room_abc12345": self.ROOM_WITH_BOTH})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         # AC entity needs hvac_modes with 'heat' so it's detected as heat-capable
         ac_state = MagicMock()
@@ -68,7 +68,7 @@ class TestHeatSourceOrchestration:
         fake_plan = HeatSourcePlan(commands=[], active_sources="primary", reason="test")
 
         with patch(
-            "custom_components.roommind.coordinator.evaluate_heat_sources",
+            "custom_components.roommind_cc.coordinator.evaluate_heat_sources",
             return_value=fake_plan,
         ) as mock_evaluate:
             coordinator = _create_coordinator(hass, mock_config_entry)
@@ -92,7 +92,7 @@ class TestHeatSourceOrchestration:
         """Room with heat_source_orchestration=False. Plan should be None (normal path)."""
         room = {**self.ROOM_WITH_BOTH, "heat_source_orchestration": False}
         store = _make_store_mock({"living_room_abc12345": room})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         ac_state = MagicMock()
         ac_state.state = "off"
@@ -109,7 +109,7 @@ class TestHeatSourceOrchestration:
         hass.services.async_call = AsyncMock()
 
         with patch(
-            "custom_components.roommind.coordinator.evaluate_heat_sources",
+            "custom_components.roommind_cc.coordinator.evaluate_heat_sources",
         ) as mock_evaluate:
             coordinator = _create_coordinator(hass, mock_config_entry)
             await coordinator._async_update_data()
@@ -123,13 +123,13 @@ class TestHeatSourceOrchestration:
     @pytest.mark.asyncio
     async def test_state_cleanup_on_disable(self, hass, mock_config_entry):
         """Disabling orchestration removes the stale state entry."""
-        from custom_components.roommind.managers.heat_source_orchestrator import (
+        from custom_components.roommind_cc.managers.heat_source_orchestrator import (
             HeatSourcePlan,
         )
 
         # First cycle: orchestration ON
         store = _make_store_mock({"living_room_abc12345": self.ROOM_WITH_BOTH})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         ac_state = MagicMock()
         ac_state.state = "off"
@@ -148,7 +148,7 @@ class TestHeatSourceOrchestration:
         fake_plan = HeatSourcePlan(commands=[], active_sources="both", reason="test")
 
         with patch(
-            "custom_components.roommind.coordinator.evaluate_heat_sources",
+            "custom_components.roommind_cc.coordinator.evaluate_heat_sources",
             return_value=fake_plan,
         ):
             coordinator = _create_coordinator(hass, mock_config_entry)
@@ -161,7 +161,7 @@ class TestHeatSourceOrchestration:
         store.get_rooms.return_value = {"living_room_abc12345": room_disabled}
 
         with patch(
-            "custom_components.roommind.coordinator.evaluate_heat_sources",
+            "custom_components.roommind_cc.coordinator.evaluate_heat_sources",
         ) as mock_evaluate:
             await coordinator._async_update_data()
             mock_evaluate.assert_not_called()
@@ -196,12 +196,12 @@ class TestHeatSourceOrchestration:
     @pytest.mark.asyncio
     async def test_active_heat_sources_in_live_data(self, hass, mock_config_entry):
         """_build_live_data includes active_heat_sources from _heat_source_states."""
-        from custom_components.roommind.managers.heat_source_orchestrator import (
+        from custom_components.roommind_cc.managers.heat_source_orchestrator import (
             HeatSourcePlan,
         )
 
         store = _make_store_mock({"living_room_abc12345": self.ROOM_WITH_BOTH})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         ac_state = MagicMock()
         ac_state.state = "off"
@@ -220,7 +220,7 @@ class TestHeatSourceOrchestration:
         fake_plan = HeatSourcePlan(commands=[], active_sources="both", reason="test")
 
         with patch(
-            "custom_components.roommind.coordinator.evaluate_heat_sources",
+            "custom_components.roommind_cc.coordinator.evaluate_heat_sources",
             return_value=fake_plan,
         ):
             coordinator = _create_coordinator(hass, mock_config_entry)
@@ -233,7 +233,7 @@ class TestHeatSourceOrchestration:
     async def test_active_heat_sources_none_when_not_orchestrated(self, hass, mock_config_entry):
         """active_heat_sources is None for rooms without orchestration."""
         store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(side_effect=make_mock_states_get())
         hass.services.async_call = AsyncMock()
@@ -273,7 +273,7 @@ class TestHeatSourceOrchestration:
                 }
             ],
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         # Room is warm so coordinator wants to cool (temp=28, comfort=21)
         hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="28.0"))
@@ -318,7 +318,7 @@ class TestHeatSourceOrchestration:
                 }
             ],
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         # Room is at target so coordinator wants idle (temp=21, comfort=21)
         # AC must have an active HA state so forced_on tracking recognises it as running
@@ -368,7 +368,7 @@ class TestHeatSourceOrchestration:
                 }
             ],
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         # Window open, room warm
         hass.states.get = MagicMock(
@@ -430,7 +430,7 @@ class TestHeatSourceOrchestration:
                 }
             ],
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         coordinator._compressor_manager.load_groups(store.get_settings()["compressor_groups"])
@@ -499,7 +499,7 @@ class TestHeatSourceOrchestration:
                 }
             ],
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         # Room is warm so coordinator wants to cool (temp=28, comfort_cool=24)
         hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="28.0"))

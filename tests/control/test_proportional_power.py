@@ -6,10 +6,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.roommind.control.mpc_controller import (
+from custom_components.roommind_cc.control.mpc_controller import (
     MPCController,
 )
-from custom_components.roommind.control.thermal_model import RCModel, RoomModelManager
+from custom_components.roommind_cc.control.thermal_model import RCModel, RoomModelManager
 
 from .conftest import build_hass, make_room
 
@@ -611,7 +611,7 @@ def test_proportional_deadband_helper_disabled_at_comfort():
 
 
 def test_proportional_deadband_helper_values_at_efficiency():
-    from custom_components.roommind.const import (
+    from custom_components.roommind_cc.const import (
         PROPORTIONAL_DEADBAND_C,
         PROPORTIONAL_DEADBAND_NEAR_TARGET_C,
     )

@@ -1,10 +1,10 @@
-"""Tests for custom_components.roommind.utils.device_utils."""
+"""Tests for custom_components.roommind_cc.utils.device_utils."""
 
 from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from custom_components.roommind.utils.device_utils import (
+from custom_components.roommind_cc.utils.device_utils import (
     SETPOINT_MODE_PROPORTIONAL,
     VALID_DEVICE_TYPES,
     VALID_HEATING_SYSTEM_TYPES,
@@ -37,7 +37,7 @@ def test_valid_device_types():
 
 
 def test_device_role_auto_constant():
-    from custom_components.roommind.utils.device_utils import DEVICE_ROLE_AUTO
+    from custom_components.roommind_cc.utils.device_utils import DEVICE_ROLE_AUTO
 
     assert DEVICE_ROLE_AUTO == "auto"
 

@@ -1,6 +1,6 @@
 /**
  * Shared device utilities for the unified device model.
- * Mirrors backend logic from custom_components/roommind/utils/device_utils.py.
+ * Mirrors backend logic from custom_components/roommind_cc/utils/device_utils.py.
  */
 
 import type { DeviceConfig } from "../types";

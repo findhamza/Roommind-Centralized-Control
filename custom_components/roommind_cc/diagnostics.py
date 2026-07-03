@@ -310,6 +310,7 @@ async def async_get_config_entry_diagnostics(hass: HomeAssistant, config_entry: 
         "recent_history": recent_history,
         "compressor_groups": compressor,
         "valve_protection": valve,
+        "priority_zones": coordinator.priority_zone_data if coordinator else {},
         "presence": {
             "enabled": settings.get("presence_enabled", False),
             "persons": settings.get("presence_persons", []),

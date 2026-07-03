@@ -6,10 +6,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.roommind.control.mpc_controller import (
+from custom_components.roommind_cc.control.mpc_controller import (
     MPCController,
 )
-from custom_components.roommind.control.thermal_model import RCModel, RoomModelManager
+from custom_components.roommind_cc.control.thermal_model import RCModel, RoomModelManager
 
 from .conftest import build_hass, make_room
 
@@ -213,7 +213,7 @@ class TestComputeHorizonBlocks:
 
     def test_small_delta_returns_minimum_horizon(self):
         """Small temp delta should still produce at least MIN_HORIZON_HOURS worth of blocks."""
-        from custom_components.roommind.control.mpc_controller import MIN_HORIZON_HOURS, PLAN_DT_MINUTES
+        from custom_components.roommind_cc.control.mpc_controller import MIN_HORIZON_HOURS, PLAN_DT_MINUTES
 
         ctrl = self._make_ctrl()
         model = ctrl._model_manager.get_model("living_room")
@@ -238,8 +238,8 @@ class TestComputeHorizonBlocks:
 
     def test_zero_Q_max_returns_default(self):
         """When Q_heat and Q_cool are both 0, fall back to default horizon."""
-        from custom_components.roommind.control.mpc_controller import MIN_HORIZON_HOURS, PLAN_DT_MINUTES
-        from custom_components.roommind.control.thermal_model import RCModel
+        from custom_components.roommind_cc.control.mpc_controller import MIN_HORIZON_HOURS, PLAN_DT_MINUTES
+        from custom_components.roommind_cc.control.thermal_model import RCModel
 
         ctrl = self._make_ctrl()
         model = RCModel(C=2.0, U=50.0, Q_heat=0.0, Q_cool=0.0)
@@ -248,7 +248,7 @@ class TestComputeHorizonBlocks:
 
     def test_high_power_model_shorter_horizon(self):
         """High HVAC power should yield fewer blocks (faster to reach target)."""
-        from custom_components.roommind.control.thermal_model import RCModel
+        from custom_components.roommind_cc.control.thermal_model import RCModel
 
         ctrl = self._make_ctrl()
         model_low = RCModel(C=2.0, U=50.0, Q_heat=400.0, Q_cool=400.0)
@@ -259,7 +259,7 @@ class TestComputeHorizonBlocks:
 
     def test_high_thermal_mass_longer_horizon(self):
         """High thermal capacitance should yield more blocks (slower temperature change)."""
-        from custom_components.roommind.control.thermal_model import RCModel
+        from custom_components.roommind_cc.control.thermal_model import RCModel
 
         ctrl = self._make_ctrl()
         model_small_c = RCModel(C=1.0, U=50.0, Q_heat=800.0, Q_cool=800.0)
@@ -279,7 +279,7 @@ class TestIsMpcActive:
 
     def test_area_not_in_estimators(self):
         """Returns False when area_id has no estimator."""
-        from custom_components.roommind.control.mpc_controller import is_mpc_active
+        from custom_components.roommind_cc.control.mpc_controller import is_mpc_active
 
         model_mgr = RoomModelManager()
         result = is_mpc_active(model_mgr, "unknown_room", True, False, 20.0, 10.0)
@@ -287,7 +287,7 @@ class TestIsMpcActive:
 
     def test_prediction_std_too_high(self):
         """Returns False when prediction_std >= MPC_MAX_PREDICTION_STD."""
-        from custom_components.roommind.control.mpc_controller import is_mpc_active
+        from custom_components.roommind_cc.control.mpc_controller import is_mpc_active
 
         model_mgr = RoomModelManager()
         model_mgr.update("living_room", 20.0, 10.0, "idle", 5.0)
@@ -298,7 +298,7 @@ class TestIsMpcActive:
 
     def test_insufficient_idle_samples(self):
         """Returns False when idle samples below MIN_IDLE_UPDATES."""
-        from custom_components.roommind.control.mpc_controller import is_mpc_active
+        from custom_components.roommind_cc.control.mpc_controller import is_mpc_active
 
         model_mgr = RoomModelManager()
         model_mgr.update("living_room", 20.0, 10.0, "idle", 5.0)
@@ -309,7 +309,7 @@ class TestIsMpcActive:
 
     def test_insufficient_heating_samples(self):
         """Returns False when can_heat but heating samples below MIN_ACTIVE_UPDATES."""
-        from custom_components.roommind.control.mpc_controller import is_mpc_active
+        from custom_components.roommind_cc.control.mpc_controller import is_mpc_active
 
         model_mgr = RoomModelManager()
         model_mgr.update("living_room", 20.0, 10.0, "idle", 5.0)
@@ -320,7 +320,7 @@ class TestIsMpcActive:
 
     def test_insufficient_cooling_samples(self):
         """Returns False when can_cool but cooling samples below MIN_ACTIVE_UPDATES."""
-        from custom_components.roommind.control.mpc_controller import is_mpc_active
+        from custom_components.roommind_cc.control.mpc_controller import is_mpc_active
 
         model_mgr = RoomModelManager()
         model_mgr.update("living_room", 20.0, 10.0, "idle", 5.0)
@@ -331,7 +331,7 @@ class TestIsMpcActive:
 
     def test_all_conditions_met_returns_true(self):
         """Returns True when all conditions satisfied."""
-        from custom_components.roommind.control.mpc_controller import is_mpc_active
+        from custom_components.roommind_cc.control.mpc_controller import is_mpc_active
 
         model_mgr = RoomModelManager()
         model_mgr.update("living_room", 20.0, 10.0, "idle", 5.0)
@@ -342,7 +342,7 @@ class TestIsMpcActive:
 
     def test_heat_and_cool_both_need_samples(self):
         """When both can_heat and can_cool, both need MIN_ACTIVE_UPDATES."""
-        from custom_components.roommind.control.mpc_controller import is_mpc_active
+        from custom_components.roommind_cc.control.mpc_controller import is_mpc_active
 
         model_mgr = RoomModelManager()
         model_mgr.update("living_room", 20.0, 10.0, "idle", 5.0)
@@ -354,7 +354,7 @@ class TestIsMpcActive:
 
     def test_no_heat_no_cool_only_idle_needed(self):
         """When neither can_heat nor can_cool, only idle check matters."""
-        from custom_components.roommind.control.mpc_controller import is_mpc_active
+        from custom_components.roommind_cc.control.mpc_controller import is_mpc_active
 
         model_mgr = RoomModelManager()
         model_mgr.update("living_room", 20.0, 10.0, "idle", 5.0)
@@ -365,7 +365,7 @@ class TestIsMpcActive:
 
     def test_prediction_std_at_threshold(self):
         """pred_std exactly at MPC_MAX_PREDICTION_STD (0.5) → False."""
-        from custom_components.roommind.control.mpc_controller import MPC_MAX_PREDICTION_STD, is_mpc_active
+        from custom_components.roommind_cc.control.mpc_controller import MPC_MAX_PREDICTION_STD, is_mpc_active
 
         model_mgr = RoomModelManager()
         model_mgr.update("living_room", 20.0, 10.0, "idle", 5.0)

@@ -6,7 +6,7 @@ from datetime import UTC
 
 import pytest
 
-from custom_components.roommind.control.solar import (
+from custom_components.roommind_cc.control.solar import (
     _clear_sky_ghi,
     _cloud_attenuation,
     _solar_elevation,

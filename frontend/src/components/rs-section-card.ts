@@ -5,7 +5,7 @@ import "./shared/rs-badge";
 const PENCIL_PATH =
   "M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z";
 
-@customElement("rs-section-card")
+@customElement("rmc-section-card")
 export class RsSectionCard extends LitElement {
   @property({ type: String }) public icon = "";
   @property({ type: String }) public heading = "";
@@ -74,7 +74,7 @@ export class RsSectionCard extends LitElement {
           <ha-icon class="section-icon" icon=${this.icon}></ha-icon>
           <h3 class="section-title">${this.heading}</h3>
           ${this.badge
-            ? html`<rs-badge .label=${this.badge} .hint=${this.badgeHint}></rs-badge>`
+            ? html`<rmc-badge .label=${this.badge} .hint=${this.badgeHint}></rmc-badge>`
             : nothing}
           <slot name="header-extras"></slot>
           ${this.editable
@@ -101,6 +101,6 @@ export class RsSectionCard extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-section-card": RsSectionCard;
+    "rmc-section-card": RsSectionCard;
   }
 }

@@ -4,7 +4,7 @@ import type { HomeAssistant } from "../types";
 import { localize } from "../utils/localize";
 import "./shared/rs-toggle-row";
 
-@customElement("rs-presence-section")
+@customElement("rmc-presence-section")
 export class RsPresenceSection extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: Boolean }) public presenceEnabled = false;
@@ -168,11 +168,11 @@ export class RsPresenceSection extends LitElement {
     }
 
     return html`
-      <rs-toggle-row
+      <rmc-toggle-row
         .label=${localize("presence.ignore_toggle", this.language)}
         .checked=${this.ignorePresence}
         @toggle-changed=${this._onIgnoreToggle}
-      ></rs-toggle-row>
+      ></rmc-toggle-row>
       ${!this.ignorePresence
         ? html`<div class="section-divider"></div>
             ${this._renderEditMode()}`
@@ -277,6 +277,6 @@ export class RsPresenceSection extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-presence-section": RsPresenceSection;
+    "rmc-presence-section": RsPresenceSection;
   }
 }

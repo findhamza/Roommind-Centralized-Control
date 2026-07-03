@@ -5,7 +5,7 @@ import { localize } from "../utils/localize";
 import { RsScheduleBase } from "./shared/rs-schedule-base";
 import { inputStyles } from "../styles/input-styles";
 
-@customElement("rs-cover-schedule")
+@customElement("rmc-cover-schedule")
 export class RsCoverSchedule extends RsScheduleBase {
   @property({ attribute: false }) public schedules: CoverScheduleEntry[] = [];
 
@@ -249,6 +249,6 @@ export class RsCoverSchedule extends RsScheduleBase {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-cover-schedule": RsCoverSchedule;
+    "rmc-cover-schedule": RsCoverSchedule;
   }
 }

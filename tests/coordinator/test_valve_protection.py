@@ -23,7 +23,7 @@ class TestValveProtection:
         """No cycling occurs without explicit enable."""
         store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
         store.get_settings.return_value = {}
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="21.0"))
         hass.services.async_call = AsyncMock()
 
@@ -44,7 +44,7 @@ class TestValveProtection:
             "valve_protection_interval_days": 7,
         }
         store.async_save_settings = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="21.0"))
         hass.services.async_call = AsyncMock()
 
@@ -75,7 +75,7 @@ class TestValveProtection:
         store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
         store.get_settings.return_value = {"valve_protection_enabled": True}
         store.async_save_settings = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="21.0"))
         hass.services.async_call = AsyncMock()
 
@@ -117,7 +117,7 @@ class TestValveProtection:
             "valve_protection_interval_days": 7,
             "valve_last_actuation": {"climate.living_room": recent_ts},
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="21.0"))
         hass.services.async_call = AsyncMock()
 
@@ -133,7 +133,7 @@ class TestValveProtection:
         store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
         store.get_settings.return_value = {"valve_protection_enabled": True}
         store.async_save_settings = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="21.0"))
         hass.services.async_call = AsyncMock()
 
@@ -172,7 +172,7 @@ class TestValveProtection:
             "valve_protection_interval_days": 7,
         }
         store.async_save_settings = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="21.0"))
         hass.services.async_call = AsyncMock()
 
@@ -200,7 +200,7 @@ class TestValveProtection:
             "valve_protection_interval_days": 7,
         }
         store.async_save_settings = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="21.0"))
         hass.services.async_call = AsyncMock()
 
@@ -220,7 +220,7 @@ class TestValveProtection:
         """Normal heating updates valve actuation timestamps."""
         store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
         store.get_settings.return_value = {}
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="18.0"))
         hass.services.async_call = AsyncMock()
 
@@ -242,7 +242,7 @@ class TestValveProtection:
             "valve_protection_interval_days": 3,
         }
         store.async_save_settings = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="21.0"))
         hass.services.async_call = AsyncMock()
 
@@ -267,7 +267,7 @@ class TestValveProtection:
             },
         }
         store.async_save_settings = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="21.0"))
         hass.services.async_call = AsyncMock()
 
@@ -287,7 +287,7 @@ class TestValveProtection:
             "valve_protection_interval_days": 7,
         }
         store.async_save_settings = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         trv_state = MagicMock()
         trv_state.state = "off"

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from custom_components.roommind.utils.sensor_utils import read_sensor_value
+from custom_components.roommind_cc.utils.sensor_utils import read_sensor_value
 
 
 def _make_hass(entity_id: str, state_value: str) -> MagicMock:

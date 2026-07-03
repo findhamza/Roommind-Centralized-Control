@@ -7,8 +7,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.roommind.const import TargetTemps
-from custom_components.roommind.control.mpc_controller import (
+from custom_components.roommind_cc.const import TargetTemps
+from custom_components.roommind_cc.control.mpc_controller import (
     MODE_COOLING,
     MODE_HEATING,
     MODE_IDLE,
@@ -16,7 +16,7 @@ from custom_components.roommind.control.mpc_controller import (
     check_acs_can_heat,
     get_can_heat_cool,
 )
-from custom_components.roommind.control.thermal_model import RoomModelManager
+from custom_components.roommind_cc.control.thermal_model import RoomModelManager
 
 from .conftest import build_hass, make_room
 

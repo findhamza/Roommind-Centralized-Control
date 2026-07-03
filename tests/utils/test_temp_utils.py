@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 from homeassistant.const import UnitOfTemperature
 
-from custom_components.roommind.utils.temp_utils import (
+from custom_components.roommind_cc.utils.temp_utils import (
     _is_fahrenheit,
     celsius_delta_to_ha,
     celsius_to_ha_temp,

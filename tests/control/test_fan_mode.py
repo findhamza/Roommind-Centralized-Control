@@ -6,14 +6,14 @@ from unittest.mock import ANY, MagicMock
 
 import pytest
 
-from custom_components.roommind.const import MODE_IDLE, TargetTemps
-from custom_components.roommind.control.mpc_controller import (
+from custom_components.roommind_cc.const import MODE_IDLE, TargetTemps
+from custom_components.roommind_cc.control.mpc_controller import (
     MPCController,
     _last_commands,
     async_idle_device,
     clear_command_cache,
 )
-from custom_components.roommind.control.thermal_model import RoomModelManager
+from custom_components.roommind_cc.control.thermal_model import RoomModelManager
 
 from .conftest import build_hass, make_room
 
@@ -714,7 +714,7 @@ async def test_mpc_apply_heat_source_inactive_trv_low():
         },
     ]
 
-    from custom_components.roommind.managers.heat_source_orchestrator import (
+    from custom_components.roommind_cc.managers.heat_source_orchestrator import (
         DeviceCommand,
         HeatSourcePlan,
     )

@@ -6,10 +6,11 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.roommind.const import DOMAIN
-from custom_components.roommind.sensor import (
+from custom_components.roommind_cc.const import DOMAIN
+from custom_components.roommind_cc.sensor import (
     RoomMindModeSensor,
     RoomMindTargetTemperatureSensor,
+    RoomMindZoneStatusSensor,
     _create_room_entities,
     async_setup_entry,
 )
@@ -47,7 +48,7 @@ async def test_setup_entry_creates_entities(hass, mock_config_entry, store):
 
 @pytest.mark.asyncio
 async def test_setup_entry_no_rooms(hass, mock_config_entry, store):
-    """No entities created when store has no rooms."""
+    """No entities created when store has no rooms and no zones."""
     await store.async_load()
 
     coordinator = _make_coordinator()
@@ -61,6 +62,36 @@ async def test_setup_entry_no_rooms(hass, mock_config_entry, store):
 
     assert coordinator.async_add_entities is add_entities
     add_entities.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_setup_entry_creates_zone_status_sensors(hass, mock_config_entry, store):
+    """One status sensor is created per configured priority zone."""
+    await store.async_load()
+    await store.async_save_settings(
+        {
+            "priority_zones": [
+                {"id": "down", "name": "Downstairs"},
+                {"id": "up", "name": "Upstairs"},
+            ]
+        }
+    )
+
+    coordinator = _make_coordinator()
+    coordinator._zone_entity_ids = set()
+    hass.data[DOMAIN] = {
+        mock_config_entry.entry_id: coordinator,
+        "store": store,
+    }
+    add_entities = MagicMock()
+
+    await async_setup_entry(hass, mock_config_entry, add_entities)
+
+    entities = add_entities.call_args[0][0]
+    assert len(entities) == 2
+    assert all(isinstance(e, RoomMindZoneStatusSensor) for e in entities)
+    assert entities[0].entity_id == "sensor.roommind_cc_zone_down_status"
+    assert coordinator._zone_entity_ids == {"down", "up"}
 
 
 @pytest.mark.asyncio

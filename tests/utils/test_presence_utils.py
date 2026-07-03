@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from custom_components.roommind.utils.presence_utils import is_presence_away
+from custom_components.roommind_cc.utils.presence_utils import is_presence_away
 
 
 def _make_state(entity_id: str, state: str) -> MagicMock:

@@ -10,9 +10,9 @@ import { getSelectValue } from "../../utils/events";
 import { toDisplay, toCelsius, tempUnit, tempStep, tempRange } from "../../utils/temperature";
 
 const CONTROL_DOCS_URL =
-  "https://github.com/snazzybean/roommind/blob/main/docs/control-and-devices.md";
+  "https://github.com/findhamza/Roommind-Centralized-Control/blob/main/docs/control-and-devices.md";
 
-@customElement("rs-settings-control")
+@customElement("rmc-settings-control")
 export class RsSettingsControl extends RsSettingsBase {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: String }) public controlMode: "mpc" | "bangbang" = "mpc";
@@ -202,6 +202,6 @@ export class RsSettingsControl extends RsSettingsBase {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-settings-control": RsSettingsControl;
+    "rmc-settings-control": RsSettingsControl;
   }
 }

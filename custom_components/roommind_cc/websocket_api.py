@@ -20,8 +20,20 @@ from .const import (
     DEFAULT_CONFLICT_RESOLUTION,
     DEFAULT_ECO_COOL,
     DEFAULT_ECO_HEAT,
+    DEFAULT_SZ_COOL_START_THRESHOLD,
+    DEFAULT_SZ_COOL_STOP_THRESHOLD,
+    DEFAULT_SZ_HEAT_START_THRESHOLD,
+    DEFAULT_SZ_HEAT_STOP_THRESHOLD,
+    DEFAULT_SZ_MAIN_MAX_TEMP,
+    DEFAULT_SZ_MAIN_MIN_TEMP,
+    DEFAULT_SZ_MAX_OFFSET,
+    DEFAULT_SZ_MIN_OFF_MINUTES,
+    DEFAULT_SZ_MIN_RUN_MINUTES,
+    DEFAULT_SZ_STATIC_BIAS,
     DOMAIN,
     OVERRIDE_TYPES,
+    SZ_CONDITIONS,
+    SZ_RESTORE_BEHAVIORS,
     build_override_live,
     is_override_suppressed,
 )
@@ -141,7 +153,116 @@ _SETTINGS_SAVE_FIELDS = (
     "room_order",
     "group_by_floor",
     "compressor_groups",
+    "priority_zones",
 )
+
+# Schema for one priority zone (single-thermostat supervisory control).
+# All temperatures/deltas are °C (frontend converts for display).
+PRIORITY_ZONE_SCHEMA = vol.Schema(
+    {
+        vol.Required("id"): vol.Match(r"^[a-z0-9_]+$"),
+        vol.Optional("name", default=""): str,
+        vol.Optional("enabled", default=False): bool,
+        vol.Optional("thermostat_entity", default=""): str,
+        vol.Optional("zone_rooms", default=[]): [str],
+        vol.Optional("main_area_id", default=""): str,
+        vol.Optional("main_temp_sensor", default=""): str,
+        vol.Optional("priority_rooms", default=[]): [
+            {
+                vol.Required("area_id"): str,
+                vol.Optional("condition", default="always"): vol.In(SZ_CONDITIONS),
+                vol.Optional("schedule_entity", default=""): str,
+            }
+        ],
+        vol.Optional("sleep_mode_entity", default=""): str,
+        vol.Optional("cool_start_threshold", default=DEFAULT_SZ_COOL_START_THRESHOLD): vol.All(
+            vol.Coerce(float), vol.Range(min=0.1, max=5.0)
+        ),
+        vol.Optional("cool_stop_threshold", default=DEFAULT_SZ_COOL_STOP_THRESHOLD): vol.All(
+            vol.Coerce(float), vol.Range(min=0.0, max=5.0)
+        ),
+        vol.Optional("heat_start_threshold", default=DEFAULT_SZ_HEAT_START_THRESHOLD): vol.All(
+            vol.Coerce(float), vol.Range(min=0.1, max=5.0)
+        ),
+        vol.Optional("heat_stop_threshold", default=DEFAULT_SZ_HEAT_STOP_THRESHOLD): vol.All(
+            vol.Coerce(float), vol.Range(min=0.0, max=5.0)
+        ),
+        vol.Optional("cool_bias", default=DEFAULT_SZ_STATIC_BIAS): vol.All(
+            vol.Coerce(float), vol.Range(min=0.5, max=10.0)
+        ),
+        vol.Optional("heat_bias", default=DEFAULT_SZ_STATIC_BIAS): vol.All(
+            vol.Coerce(float), vol.Range(min=0.5, max=10.0)
+        ),
+        vol.Optional("max_cool_offset", default=DEFAULT_SZ_MAX_OFFSET): vol.All(
+            vol.Coerce(float), vol.Range(min=0.5, max=10.0)
+        ),
+        vol.Optional("max_heat_offset", default=DEFAULT_SZ_MAX_OFFSET): vol.All(
+            vol.Coerce(float), vol.Range(min=0.5, max=10.0)
+        ),
+        vol.Optional("main_min_temp", default=DEFAULT_SZ_MAIN_MIN_TEMP): vol.All(
+            vol.Coerce(float), vol.Range(min=5.0, max=35.0)
+        ),
+        vol.Optional("main_max_temp", default=DEFAULT_SZ_MAIN_MAX_TEMP): vol.All(
+            vol.Coerce(float), vol.Range(min=5.0, max=35.0)
+        ),
+        vol.Optional("min_run_minutes", default=DEFAULT_SZ_MIN_RUN_MINUTES): vol.All(
+            vol.Coerce(int), vol.Range(min=1, max=60)
+        ),
+        vol.Optional("min_off_minutes", default=DEFAULT_SZ_MIN_OFF_MINUTES): vol.All(
+            vol.Coerce(int), vol.Range(min=1, max=60)
+        ),
+        vol.Optional("dynamic_bias", default=True): bool,
+        vol.Optional("priority_wins", default=False): bool,
+        vol.Optional("restore_behavior", default="restore"): vol.In(SZ_RESTORE_BEHAVIORS),
+    }
+)
+
+
+def _validate_priority_zone(sz: dict) -> str | None:
+    """Cross-field validation for one priority zone. Returns error or None."""
+    label = sz.get("name") or sz.get("id", "?")
+    thermostat = sz.get("thermostat_entity", "")
+    if thermostat and not thermostat.startswith("climate."):
+        return f"Zone '{label}': thermostat '{thermostat}' must be a climate entity"
+    if sz.get("enabled") and not thermostat:
+        return f"Zone '{label}': an enabled zone requires a thermostat_entity"
+    if sz.get("cool_stop_threshold", 0.0) >= sz.get("cool_start_threshold", 1.0):
+        return f"Zone '{label}': cool_stop_threshold must be below cool_start_threshold"
+    if sz.get("heat_stop_threshold", 0.0) >= sz.get("heat_start_threshold", 1.0):
+        return f"Zone '{label}': heat_stop_threshold must be below heat_start_threshold"
+    if sz.get("main_min_temp", 0.0) >= sz.get("main_max_temp", 99.0):
+        return f"Zone '{label}': main_min_temp must be below main_max_temp"
+    area_ids = [p["area_id"] for p in sz.get("priority_rooms", [])]
+    if len(area_ids) != len(set(area_ids)):
+        return f"Zone '{label}': priority_rooms contains duplicate area_ids"
+    return None
+
+
+def _validate_priority_zones(zones: list[dict]) -> str | None:
+    """Validate the whole zones list, including cross-zone constraints."""
+    ids = [z.get("id", "") for z in zones]
+    if len(ids) != len(set(ids)):
+        return "Priority zone ids must be unique"
+    thermostats = [z.get("thermostat_entity", "") for z in zones if z.get("thermostat_entity")]
+    if len(thermostats) != len(set(thermostats)):
+        return "A thermostat cannot be assigned to multiple priority zones"
+    seen_zone_rooms: dict[str, str] = {}
+    seen_priority_rooms: dict[str, str] = {}
+    for z in zones:
+        err = _validate_priority_zone(z)
+        if err:
+            return err
+        label = z.get("name") or z.get("id", "?")
+        for area_id in z.get("zone_rooms", []):
+            if area_id in seen_zone_rooms:
+                return f"Room '{area_id}' is a zone room of both '{seen_zone_rooms[area_id]}' and '{label}'"
+            seen_zone_rooms[area_id] = label
+        for p in z.get("priority_rooms", []):
+            area_id = p.get("area_id", "")
+            if area_id in seen_priority_rooms:
+                return f"Room '{area_id}' is a priority room of both '{seen_priority_rooms[area_id]}' and '{label}'"
+            seen_priority_rooms[area_id] = label
+    return None
 
 
 # _safe_float, _csv_to_points and _compute_target_forecast are imported from
@@ -186,7 +307,7 @@ def _validate_no_duplicate_devices(config: dict) -> str | None:
 # ---------------------------------------------------------------------------
 
 
-@websocket_api.websocket_command({vol.Required("type"): "roommind/rooms/list"})
+@websocket_api.websocket_command({vol.Required("type"): "roommind_cc/rooms/list"})
 @websocket_api.async_response
 async def websocket_list_rooms(
     hass: HomeAssistant,
@@ -288,6 +409,8 @@ async def websocket_list_rooms(
             "anyone_home": _compute_anyone_home(hass, settings),
             "valve_protection_enabled": settings.get("valve_protection_enabled", False),
             "compressor_groups": settings.get("compressor_groups", []),
+            "priority_zones": settings.get("priority_zones", []),
+            "priority_zone_state": coordinator.priority_zone_data if coordinator else {},
         },
     )
 
@@ -299,7 +422,7 @@ async def websocket_list_rooms(
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "roommind/rooms/save",
+        vol.Required("type"): "roommind_cc/rooms/save",
         vol.Required("area_id"): str,
         vol.Optional("thermostats"): [str],
         vol.Optional("acs"): [str],
@@ -417,7 +540,7 @@ async def websocket_save_room(
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "roommind/rooms/delete",
+        vol.Required("type"): "roommind_cc/rooms/delete",
         vol.Required("area_id"): str,
     }
 )
@@ -452,7 +575,7 @@ async def websocket_delete_room(
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "roommind/override/set",
+        vol.Required("type"): "roommind_cc/override/set",
         vol.Required("area_id"): str,
         vol.Required("override_type"): vol.In(OVERRIDE_TYPES),
         vol.Optional("heat"): vol.Coerce(float),
@@ -527,7 +650,7 @@ async def websocket_override_set(
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "roommind/override/clear",
+        vol.Required("type"): "roommind_cc/override/clear",
         vol.Required("area_id"): str,
     }
 )
@@ -568,7 +691,7 @@ async def websocket_override_clear(
 # ---------------------------------------------------------------------------
 
 
-@websocket_api.websocket_command({vol.Required("type"): "roommind/settings/get"})
+@websocket_api.websocket_command({vol.Required("type"): "roommind_cc/settings/get"})
 @websocket_api.async_response
 async def websocket_get_settings(
     hass: HomeAssistant,
@@ -587,7 +710,7 @@ async def websocket_get_settings(
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "roommind/settings/save",
+        vol.Required("type"): "roommind_cc/settings/save",
         vol.Optional("outdoor_temp_sensor"): str,
         vol.Optional("outdoor_humidity_sensor"): str,
         vol.Optional("outdoor_cooling_min"): vol.Coerce(float),
@@ -650,6 +773,7 @@ async def websocket_get_settings(
                 vol.Optional("enforce_uniform_mode", default=False): bool,
             }
         ],
+        vol.Optional("priority_zones"): [PRIORITY_ZONE_SCHEMA],
     }
 )
 @websocket_api.async_response
@@ -738,7 +862,21 @@ async def websocket_save_settings(
             )
             return
 
+    # Validate priority zones
+    if "priority_zones" in changes:
+        err = _validate_priority_zones(changes["priority_zones"])
+        if err:
+            connection.send_error(msg["id"], "invalid_priority_zones", err)
+            return
+
     settings = await store.async_save_settings(changes)
+
+    # Sync per-zone entities when the zone list changed
+    if "priority_zones" in changes:
+        coordinator = _get_coordinator(hass)
+        if coordinator:
+            await coordinator.async_sync_zone_entities()
+
     connection.send_result(msg["id"], {"settings": settings})
 
 
@@ -753,7 +891,7 @@ async def websocket_save_settings(
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "roommind/analytics/get",
+        vol.Required("type"): "roommind_cc/analytics/get",
         vol.Required("area_id"): str,
         vol.Optional("range"): vol.In(["12h", "24h", "2d", "7d", "14d", "30d", "90d"]),
         vol.Optional("start_ts"): vol.Coerce(float),
@@ -788,7 +926,7 @@ async def websocket_get_analytics(
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "roommind/thermal/reset",
+        vol.Required("type"): "roommind_cc/thermal/reset",
         vol.Required("area_id"): str,
     }
 )
@@ -822,7 +960,7 @@ async def websocket_thermal_reset(
 # ---------------------------------------------------------------------------
 
 
-@websocket_api.websocket_command({vol.Required("type"): "roommind/thermal/reset_all"})
+@websocket_api.websocket_command({vol.Required("type"): "roommind_cc/thermal/reset_all"})
 @websocket_api.async_response
 async def websocket_thermal_reset_all(
     hass: HomeAssistant,
@@ -851,7 +989,7 @@ async def websocket_thermal_reset_all(
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "roommind/model/boost_learning",
+        vol.Required("type"): "roommind_cc/model/boost_learning",
         vol.Required("area_id"): str,
     }
 )
@@ -886,7 +1024,7 @@ async def websocket_boost_learning(
 # ---------------------------------------------------------------------------
 
 
-@websocket_api.websocket_command({vol.Required("type"): "roommind/diagnostics/get"})
+@websocket_api.websocket_command({vol.Required("type"): "roommind_cc/diagnostics/get"})
 @websocket_api.async_response
 async def websocket_get_diagnostics(
     hass: HomeAssistant,

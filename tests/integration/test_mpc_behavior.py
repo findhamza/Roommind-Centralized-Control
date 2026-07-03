@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.roommind.control.thermal_model import RoomModelManager
+from custom_components.roommind_cc.control.thermal_model import RoomModelManager
 
 from .conftest import make_hass_states, setup_room
 

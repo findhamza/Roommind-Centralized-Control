@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from homeassistant.const import UnitOfTemperature
 
-from custom_components.roommind.managers.weather_manager import WeatherManager
+from custom_components.roommind_cc.managers.weather_manager import WeatherManager
 
 
 def _make_hass(fahrenheit: bool = False) -> MagicMock:

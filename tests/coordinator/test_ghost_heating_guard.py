@@ -15,7 +15,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.roommind.const import MODE_COOLING, MODE_HEATING, MODE_IDLE
+from custom_components.roommind_cc.const import MODE_COOLING, MODE_HEATING, MODE_IDLE
 
 from .conftest import (
     SAMPLE_ROOM,
@@ -73,7 +73,7 @@ async def _run_and_capture_train_kwargs(
     store = _make_store_mock(rooms)
     if settings:
         store.get_settings.return_value = settings
-    hass.data = {"roommind": {"store": store}}
+    hass.data = {"roommind_cc": {"store": store}}
     hass.states.get = MagicMock(side_effect=states_get)
     hass.services.async_call = AsyncMock()
 
@@ -345,7 +345,7 @@ class TestGhostHeatingGuard:
         predict step doesn't inflate Q_BETA_H with a zero-gradient Jacobian."""
         from unittest.mock import patch
 
-        from custom_components.roommind.managers.heat_source_orchestrator import (
+        from custom_components.roommind_cc.managers.heat_source_orchestrator import (
             DeviceCommand,
             HeatSourcePlan,
         )
@@ -426,7 +426,7 @@ class TestGhostHeatingGuard:
 
         rooms = {room["area_id"]: room}
         store = _make_store_mock(rooms)
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
 
@@ -435,7 +435,7 @@ class TestGhostHeatingGuard:
         coordinator._ekf_training.process = training_mock
 
         with patch(
-            "custom_components.roommind.coordinator.evaluate_heat_sources",
+            "custom_components.roommind_cc.coordinator.evaluate_heat_sources",
             return_value=zero_plan,
         ):
             await coordinator._async_update_data()

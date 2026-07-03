@@ -6,13 +6,13 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.roommind.const import TargetTemps
-from custom_components.roommind.control.mpc_controller import (
+from custom_components.roommind_cc.const import TargetTemps
+from custom_components.roommind_cc.control.mpc_controller import (
     MODE_HEATING,
     MPCController,
     _last_commands,
 )
-from custom_components.roommind.control.thermal_model import RoomModelManager
+from custom_components.roommind_cc.control.thermal_model import RoomModelManager
 
 from .conftest import _make_ac_state_for_plan, build_hass, make_room
 
@@ -20,7 +20,7 @@ from .conftest import _make_ac_state_for_plan, build_hass, make_room
 @pytest.mark.asyncio
 async def test_heat_source_plan_excluded_trv_skipped():
     """TRV in heat source plan but also in exclude_eids gets no service calls."""
-    from custom_components.roommind.managers.heat_source_orchestrator import (
+    from custom_components.roommind_cc.managers.heat_source_orchestrator import (
         DeviceCommand,
         HeatSourcePlan,
     )
@@ -91,7 +91,7 @@ async def test_heat_source_plan_excluded_trv_skipped():
 @pytest.mark.asyncio
 async def test_heat_source_plan_active_trv_inactive_ac():
     """Active TRV gets heat mode + proportional temp, inactive AC gets turned off."""
-    from custom_components.roommind.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
+    from custom_components.roommind_cc.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
 
     _last_commands.clear()
     hass = build_hass()
@@ -159,7 +159,7 @@ async def test_heat_source_plan_active_trv_inactive_ac():
 @pytest.mark.asyncio
 async def test_heat_source_plan_active_ac_inactive_trv():
     """Active AC gets heat + proportional temp, inactive TRV is idled via async_idle_device (#168)."""
-    from custom_components.roommind.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
+    from custom_components.roommind_cc.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
 
     _last_commands.clear()
     hass = build_hass()
@@ -245,7 +245,7 @@ async def test_heat_source_plan_active_ac_inactive_trv():
 @pytest.mark.asyncio
 async def test_heat_source_plan_inactive_trv_already_off_is_noop():
     """When the TRV is already off, no service calls are issued (redundancy check)."""
-    from custom_components.roommind.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
+    from custom_components.roommind_cc.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
 
     _last_commands.clear()
     hass = build_hass()
@@ -311,7 +311,7 @@ async def test_heat_source_plan_inactive_trv_already_off_is_noop():
 @pytest.mark.asyncio
 async def test_heat_source_plan_inactive_trv_with_setback():
     """When idle_action=setback, inactive TRV stays in heat with reduced setpoint."""
-    from custom_components.roommind.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
+    from custom_components.roommind_cc.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
 
     _last_commands.clear()
     hass = build_hass()
@@ -392,7 +392,7 @@ async def test_heat_source_plan_inactive_trv_with_setback():
 @pytest.mark.asyncio
 async def test_heat_source_plan_both_active_different_fractions():
     """Both devices active with different power fractions get correct proportional temps."""
-    from custom_components.roommind.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
+    from custom_components.roommind_cc.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
 
     _last_commands.clear()
     hass = build_hass()
@@ -454,7 +454,7 @@ async def test_heat_source_plan_both_active_different_fractions():
 @pytest.mark.asyncio
 async def test_heat_source_plan_excluded_eid_skipped():
     """Excluded EID in plan commands is skipped entirely (no service calls)."""
-    from custom_components.roommind.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
+    from custom_components.roommind_cc.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
 
     _last_commands.clear()
     hass = build_hass()
@@ -509,7 +509,7 @@ async def test_heat_source_plan_excluded_eid_skipped():
 @pytest.mark.asyncio
 async def test_heat_source_plan_ac_cool_only_gets_off():
     """AC with only 'cool' in hvac_modes gets turned off when active in heating plan."""
-    from custom_components.roommind.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
+    from custom_components.roommind_cc.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
 
     _last_commands.clear()
     hass = build_hass()
@@ -561,7 +561,7 @@ async def test_heat_source_plan_ac_cool_only_gets_off():
 @pytest.mark.asyncio
 async def test_heat_source_plan_ac_heat_cool_mode():
     """AC with 'heat_cool' but no 'heat' uses heat_cool hvac_mode."""
-    from custom_components.roommind.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
+    from custom_components.roommind_cc.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
 
     _last_commands.clear()
     hass = build_hass()
@@ -613,7 +613,7 @@ async def test_heat_source_plan_ac_heat_cool_mode():
 @pytest.mark.asyncio
 async def test_heat_source_plan_ac_auto_mode():
     """AC with 'auto' but no 'heat'/'heat_cool' uses auto hvac_mode, bundled in set_temperature (#337)."""
-    from custom_components.roommind.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
+    from custom_components.roommind_cc.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
 
     _last_commands.clear()
     hass = build_hass()
@@ -666,7 +666,7 @@ async def test_heat_source_plan_ac_auto_mode():
 @pytest.mark.asyncio
 async def test_heat_source_plan_managed_mode_no_external_sensor():
     """Managed mode (no external sensor, heat_only): TRV and AC both get effective_target."""
-    from custom_components.roommind.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
+    from custom_components.roommind_cc.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
 
     _last_commands.clear()
     hass = build_hass()
@@ -760,7 +760,7 @@ async def test_heat_source_plan_managed_mode_no_external_sensor():
 @pytest.mark.asyncio
 async def test_apply_orchestrated_forced_on_overrides_inactive():
     """Forced_on overrides orchestrator marking device as inactive."""
-    from custom_components.roommind.managers.heat_source_orchestrator import (
+    from custom_components.roommind_cc.managers.heat_source_orchestrator import (
         DeviceCommand,
         HeatSourcePlan,
     )
@@ -827,7 +827,7 @@ async def test_apply_orchestrated_forced_on_overrides_inactive():
 @pytest.mark.asyncio
 async def test_apply_orchestrated_forced_off_overrides_active():
     """Forced_off overrides orchestrator marking device as active."""
-    from custom_components.roommind.managers.heat_source_orchestrator import (
+    from custom_components.roommind_cc.managers.heat_source_orchestrator import (
         DeviceCommand,
         HeatSourcePlan,
     )
@@ -882,7 +882,7 @@ async def test_apply_orchestrated_forced_off_overrides_active():
 @pytest.mark.asyncio
 async def test_apply_orchestrated_forced_on_ac():
     """Orchestrated forced_on AC gets heat mode + heat target."""
-    from custom_components.roommind.managers.heat_source_orchestrator import (
+    from custom_components.roommind_cc.managers.heat_source_orchestrator import (
         DeviceCommand,
         HeatSourcePlan,
     )
@@ -947,7 +947,7 @@ async def test_apply_orchestrated_forced_on_ac():
 )
 async def test_apply_orchestrated_forced_on_ac_mode_fallbacks(hvac_modes, expected_mode):
     """Orchestrated forced_on AC without 'heat' falls back to heat_cool/auto or skips entirely."""
-    from custom_components.roommind.managers.heat_source_orchestrator import (
+    from custom_components.roommind_cc.managers.heat_source_orchestrator import (
         DeviceCommand,
         HeatSourcePlan,
     )
@@ -1004,7 +1004,7 @@ async def test_apply_orchestrated_forced_on_ac_mode_fallbacks(hvac_modes, expect
 @pytest.mark.asyncio
 async def test_heat_source_plan_ac_heating_boost_cap_at_efficiency():
     """Orchestrated active AC heating setpoint is capped at target + 3°C at full efficiency."""
-    from custom_components.roommind.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
+    from custom_components.roommind_cc.managers.heat_source_orchestrator import DeviceCommand, HeatSourcePlan
 
     _last_commands.clear()
     hass = build_hass()
@@ -1053,7 +1053,7 @@ async def test_heat_source_plan_ac_heating_boost_cap_at_efficiency():
 @pytest.mark.asyncio
 async def test_hso_direct_setpoint_trv():
     """Active TRV with setpoint_mode='direct' in HSO receives target, not boost."""
-    from custom_components.roommind.managers.heat_source_orchestrator import (
+    from custom_components.roommind_cc.managers.heat_source_orchestrator import (
         DeviceCommand,
         HeatSourcePlan,
     )

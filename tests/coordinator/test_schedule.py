@@ -21,7 +21,7 @@ class TestRoomMindCoordinator:
     async def test_update_schedule_off_uses_eco_temp(self, hass, mock_config_entry):
         """Test that schedule 'off' uses eco_temp as target."""
         store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(side_effect=make_mock_states_get(schedule_state="off"))
         hass.services.async_call = AsyncMock()
@@ -39,7 +39,7 @@ class TestRoomMindCoordinator:
     async def test_update_schedule_on_with_block_temp(self, hass, mock_config_entry):
         """Test that schedule 'on' with temperature attribute uses block temp."""
         store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(side_effect=make_mock_states_get(schedule_attrs={"temperature": 23.0}))
         hass.services.async_call = AsyncMock()
@@ -67,7 +67,7 @@ class TestRoomMindCoordinator:
             "eco_temp": 17.0,
         }
         store = _make_store_mock({"bedroom_abc12345": room_no_schedule})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         def mock_states_get(entity_id):
             if entity_id == "sensor.bedroom_temp":
@@ -201,7 +201,7 @@ class TestRoomMindCoordinator:
             "schedule_selector_entity": "input_boolean.schedule_toggle",
         }
         store = _make_store_mock({"living_room_abc12345": room})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
@@ -225,7 +225,7 @@ class TestRoomMindCoordinator:
     async def test_process_room_returns_active_schedule_index(self, hass, mock_config_entry):
         """Verify active_schedule_index is in the room state result."""
         store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(side_effect=make_mock_states_get())
         hass.services.async_call = AsyncMock()
@@ -249,7 +249,7 @@ class TestCoverageGaps:
         so the fix reads them from block data via schedule.get_schedule instead.
         """
         store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
                 schedule_state="on",
@@ -286,7 +286,7 @@ class TestCoverageGaps:
     async def test_schedule_single_temperature_via_blocks(self, hass, mock_config_entry):
         """Single temperature field in block data also works via schedule.get_schedule."""
         store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(side_effect=make_mock_states_get(schedule_state="on", schedule_attrs={}))
 
         all_day_block = {"from": "00:00:00", "to": "23:59:59", "data": {"temperature": 22.5}}
@@ -314,7 +314,7 @@ class TestCoverageGaps:
     async def test_schedule_entity_unavailable_uses_comfort(self, hass, mock_config_entry):
         """Unavailable schedule entity falls back to comfort temp."""
         store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
                 schedule_state="unavailable",
@@ -336,7 +336,7 @@ class TestCoverageGaps:
             "schedules": [{"entity_id": ""}],
         }
         store = _make_store_mock({"living_room_abc12345": room_empty_schedule})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(side_effect=make_mock_states_get())
         hass.services.async_call = AsyncMock()
 
@@ -350,7 +350,7 @@ class TestCoverageGaps:
     async def test_schedule_invalid_block_temp_uses_comfort(self, hass, mock_config_entry):
         """Invalid (non-numeric) block temp falls back to comfort."""
         store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
                 schedule_attrs={"temperature": "not_a_number"},
@@ -371,7 +371,7 @@ class TestCoverageGaps:
         store.get_settings.return_value = {
             "outdoor_temp_sensor": "sensor.outdoor_temp",
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
                 schedule_state="on",
@@ -401,7 +401,7 @@ class TestPresenceDetection:
         store.get_settings.return_value = {
             "schedule_off_action": "off",
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
                 schedule_state="off",
@@ -424,7 +424,7 @@ class TestPresenceDetection:
         store.get_settings.return_value = {
             "schedule_off_action": "eco",
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
                 schedule_state="off",
@@ -456,7 +456,7 @@ class TestScheduleServiceFailureRecovery:
             "eco_temp": 15.0,
         }
         store = _make_store_mock({"living_room_abc12345": room})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(side_effect=make_mock_states_get(schedule_state="on", schedule_attrs={}))
 
         all_day_block = {
@@ -520,7 +520,7 @@ class TestScheduleEntityUnavailableFallback:
             "eco_temp": 15.0,
         }
         store = _make_store_mock({"living_room_abc12345": room})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         schedule_data = self._all_day_schedule(17.5)
         call_state = {"count": 0}
@@ -559,7 +559,7 @@ class TestScheduleEntityUnavailableFallback:
             "eco_temp": 15.0,
         }
         store = _make_store_mock({"living_room_abc12345": room})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         schedule_data = self._all_day_schedule(16.0)
 
@@ -591,7 +591,7 @@ class TestScheduleEntityUnavailableFallback:
             "eco_temp": 15.0,
         }
         store = _make_store_mock({"living_room_abc12345": room})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         # Empty schedule: no blocks for any day -> find_active_block always returns None
         empty_schedule = {
@@ -632,7 +632,7 @@ class TestScheduleEntityUnavailableFallback:
             "eco_temp": 15.0,
         }
         store = _make_store_mock({"living_room_abc12345": room})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         # Service always fails: nothing ever lands in the cache
         hass.services.async_call = AsyncMock(side_effect=RuntimeError("schedule service down"))
@@ -657,7 +657,7 @@ class TestScheduleEntityUnavailableFallback:
             {"living_room_abc12345": room},
             settings={"schedule_off_action": "off"},
         )
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         empty_schedule = {
             day: [] for day in ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]

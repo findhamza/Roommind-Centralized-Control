@@ -44,10 +44,10 @@ echo "    OK"
 # 2. Deploy integration (backend + frontend bundle)
 echo "--- Deploying integration ---"
 ${SSH_CMD} "${SSH_USER}@${HA_IP}" \
-  "sudo mkdir -p ${REMOTE_CONFIG}/custom_components/roommind && \
-   sudo find ${REMOTE_CONFIG}/custom_components/roommind -name '__pycache__' -exec rm -rf {} + 2>/dev/null; true"
-tar czf - -C "${SCRIPT_DIR}/custom_components/roommind" . | \
-  ${SSH_CMD} "${SSH_USER}@${HA_IP}" "sudo tar xzf - -C ${REMOTE_CONFIG}/custom_components/roommind/"
+  "sudo mkdir -p ${REMOTE_CONFIG}/custom_components/roommind_cc && \
+   sudo find ${REMOTE_CONFIG}/custom_components/roommind_cc -name '__pycache__' -exec rm -rf {} + 2>/dev/null; true"
+tar czf - -C "${SCRIPT_DIR}/custom_components/roommind_cc" . | \
+  ${SSH_CMD} "${SSH_USER}@${HA_IP}" "sudo tar xzf - -C ${REMOTE_CONFIG}/custom_components/roommind_cc/"
 echo "    OK"
 
 echo ""

@@ -9,7 +9,7 @@ import { localize } from "../../utils/localize";
 import { tempUnit } from "../../utils/temperature";
 import "../shared/rs-toggle-row";
 
-@customElement("rs-settings-sensors")
+@customElement("rmc-settings-sensors")
 export class RsSettingsSensors extends RsSettingsBase {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: String }) public outdoorTempSensor = "";
@@ -114,12 +114,12 @@ export class RsSettingsSensors extends RsSettingsBase {
       </div>
 
       <div class="settings-section">
-        <rs-toggle-row
+        <rmc-toggle-row
           .label=${localize("settings.outdoor_unavailable_notify", l)}
           .hint=${localize("settings.outdoor_unavailable_notify_hint", l)}
           .checked=${this.outdoorUnavailableNotify}
           @toggle-changed=${(e: CustomEvent) => this._fire("outdoorUnavailableNotify", e.detail)}
-        ></rs-toggle-row>
+        ></rmc-toggle-row>
       </div>
     `;
   }
@@ -152,6 +152,6 @@ export class RsSettingsSensors extends RsSettingsBase {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-settings-sensors": RsSettingsSensors;
+    "rmc-settings-sensors": RsSettingsSensors;
   }
 }

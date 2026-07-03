@@ -3,7 +3,7 @@ import { customElement, property } from "lit/decorators.js";
 import { inputStyles } from "../../styles/input-styles";
 import type { HomeAssistant } from "../../types";
 
-@customElement("rs-entity-picker-field")
+@customElement("rmc-entity-picker-field")
 export class RsEntityPickerField extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: String }) public label = "";
@@ -64,6 +64,6 @@ export class RsEntityPickerField extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-entity-picker-field": RsEntityPickerField;
+    "rmc-entity-picker-field": RsEntityPickerField;
   }
 }

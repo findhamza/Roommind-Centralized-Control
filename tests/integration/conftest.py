@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.roommind.coordinator import RoomMindCoordinator
-from custom_components.roommind.store import RoomMindStore
+from custom_components.roommind_cc.coordinator import RoomMindCoordinator
+from custom_components.roommind_cc.store import RoomMindStore
 from tests.conftest import make_mock_states_get
 
 ROOM_LIVING = {
@@ -87,7 +87,7 @@ async def setup_room(store, room=None, settings=None):
 
 @pytest.fixture
 def coordinator(hass, mock_config_entry, real_store):
-    hass.data = {"roommind": {"store": real_store}}
+    hass.data = {"roommind_cc": {"store": real_store}}
     hass.services.async_call = AsyncMock()
     hass.states.get = MagicMock(side_effect=make_hass_states())
     hass.config.latitude = 50.0

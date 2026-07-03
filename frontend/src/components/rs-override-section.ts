@@ -5,7 +5,7 @@ import { localize } from "../utils/localize";
 import { inputStyles } from "../styles/input-styles";
 import { tempUnit, toDisplay, toCelsius, tempStep, tempRange } from "../utils/temperature";
 
-@customElement("rs-override-section")
+@customElement("rmc-override-section")
 export class RsOverrideSection extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ attribute: false }) public config!: RoomConfig;
@@ -385,7 +385,7 @@ export class RsOverrideSection extends LitElement {
     this._overrideError = "";
 
     const msg: Record<string, unknown> = {
-      type: "roommind/override/set",
+      type: "roommind_cc/override/set",
       area_id: this.config.area_id,
       override_type: pendingType,
       duration: hours,
@@ -416,7 +416,7 @@ export class RsOverrideSection extends LitElement {
 
     try {
       await this.hass.callWS({
-        type: "roommind/override/clear",
+        type: "roommind_cc/override/clear",
         area_id: this.config.area_id,
       });
       this._fireRoomUpdated();
@@ -436,6 +436,6 @@ export class RsOverrideSection extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-override-section": RsOverrideSection;
+    "rmc-override-section": RsOverrideSection;
   }
 }

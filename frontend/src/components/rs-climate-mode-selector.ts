@@ -3,7 +3,7 @@ import { customElement, property } from "lit/decorators.js";
 import type { ClimateMode } from "../types";
 import { localize, type TranslationKey } from "../utils/localize";
 
-@customElement("rs-climate-mode-selector")
+@customElement("rmc-climate-mode-selector")
 export class RsClimateModeSelector extends LitElement {
   @property({ type: String }) public climateMode: ClimateMode = "auto";
   @property({ type: String }) public language = "en";
@@ -110,6 +110,6 @@ export class RsClimateModeSelector extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-climate-mode-selector": RsClimateModeSelector;
+    "rmc-climate-mode-selector": RsClimateModeSelector;
   }
 }

@@ -7,9 +7,9 @@ export default defineConfig({
       entry: resolve(__dirname, "src/main.ts"),
       name: "RoomMindPanel",
       formats: ["iife"],
-      fileName: () => "roommind-panel.js",
+      fileName: () => "roommind-cc-panel.js",
     },
-    outDir: "../custom_components/roommind/frontend",
+    outDir: "../custom_components/roommind_cc/frontend",
     emptyOutDir: false,
     rollupOptions: {
       // No external dependencies – everything is bundled

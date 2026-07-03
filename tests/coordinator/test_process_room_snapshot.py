@@ -24,7 +24,7 @@ def _setup_coordinator(hass, mock_config_entry, rooms, settings=None):
     store = _make_store_mock(rooms)
     if settings:
         store.get_settings.return_value = settings
-    hass.data = {"roommind": {"store": store}}
+    hass.data = {"roommind_cc": {"store": store}}
     hass.services.async_call = AsyncMock()
     coordinator = _create_coordinator(hass, mock_config_entry)
     return coordinator, store

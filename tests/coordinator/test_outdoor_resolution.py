@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.roommind.const import (
+from custom_components.roommind_cc.const import (
     OUTDOOR_UNAVAILABLE_NOTIFICATION_ID,
     OUTDOOR_UNAVAILABLE_NOTIFY_CYCLES,
 )
@@ -44,7 +44,7 @@ async def test_outdoor_sensor_available_used(hass, mock_config_entry):
     """Sensor value wins over weather entity when both are available."""
     store = _make_store_mock(rooms={"living_room_abc12345": SAMPLE_ROOM})
     store.get_settings.return_value = _settings_with(weather_entity="weather.test")
-    hass.data = {"roommind": {"store": store}}
+    hass.data = {"roommind_cc": {"store": store}}
 
     def states_get(eid):
         if eid == "sensor.outdoor_temp":
@@ -78,7 +78,7 @@ async def test_weather_fallback_when_sensor_missing(hass, mock_config_entry):
         outdoor_temp_sensor="",
         weather_entity="weather.test",
     )
-    hass.data = {"roommind": {"store": store}}
+    hass.data = {"roommind_cc": {"store": store}}
 
     def states_get(eid):
         if eid == "weather.test":
@@ -107,7 +107,7 @@ async def test_weather_unavailable_falls_through(hass, mock_config_entry):
         outdoor_temp_sensor="",
         weather_entity="weather.test",
     )
-    hass.data = {"roommind": {"store": store}}
+    hass.data = {"roommind_cc": {"store": store}}
 
     def states_get(eid):
         if eid == "weather.test":
@@ -135,7 +135,7 @@ async def test_both_none_returns_none(hass, mock_config_entry):
         outdoor_temp_sensor="",
         weather_entity="",
     )
-    hass.data = {"roommind": {"store": store}}
+    hass.data = {"roommind_cc": {"store": store}}
     hass.states.get = MagicMock(side_effect=make_mock_states_get(outdoor_temp=None))
     hass.services.async_call = AsyncMock()
 
@@ -157,7 +157,7 @@ async def test_ekf_training_skipped_when_no_outdoor(hass, mock_config_entry):
     """No outdoor source → training process is not invoked; accumulator cleared."""
     store = _make_store_mock(rooms={"living_room_abc12345": SAMPLE_ROOM})
     store.get_settings.return_value = _settings_with(outdoor_temp_sensor="", weather_entity="")
-    hass.data = {"roommind": {"store": store}}
+    hass.data = {"roommind_cc": {"store": store}}
     hass.states.get = MagicMock(side_effect=make_mock_states_get(outdoor_temp=None))
     hass.services.async_call = AsyncMock()
 
@@ -181,7 +181,7 @@ async def test_ekf_training_uses_weather_fallback(hass, mock_config_entry):
         outdoor_temp_sensor="",
         weather_entity="weather.test",
     )
-    hass.data = {"roommind": {"store": store}}
+    hass.data = {"roommind_cc": {"store": store}}
 
     def states_get(eid):
         if eid == "weather.test":
@@ -214,17 +214,17 @@ async def test_notification_fires_after_threshold(hass, mock_config_entry, monke
     """Notification raised once OUTDOOR_UNAVAILABLE_NOTIFY_CYCLES is reached."""
     create_mock = MagicMock()
     monkeypatch.setattr(
-        "custom_components.roommind.coordinator.async_create_notification",
+        "custom_components.roommind_cc.coordinator.async_create_notification",
         create_mock,
     )
     monkeypatch.setattr(
-        "custom_components.roommind.coordinator.async_dismiss_notification",
+        "custom_components.roommind_cc.coordinator.async_dismiss_notification",
         MagicMock(),
     )
 
     store = _make_store_mock(rooms={"living_room_abc12345": SAMPLE_ROOM})
     store.get_settings.return_value = _settings_with(outdoor_temp_sensor="", weather_entity="")
-    hass.data = {"roommind": {"store": store}}
+    hass.data = {"roommind_cc": {"store": store}}
     hass.states.get = MagicMock(side_effect=make_mock_states_get(outdoor_temp=None))
     hass.services.async_call = AsyncMock()
 
@@ -249,7 +249,7 @@ async def test_notification_disabled_by_setting(hass, mock_config_entry, monkeyp
     """outdoor_unavailable_notify=False suppresses the notification entirely."""
     create_mock = MagicMock()
     monkeypatch.setattr(
-        "custom_components.roommind.coordinator.async_create_notification",
+        "custom_components.roommind_cc.coordinator.async_create_notification",
         create_mock,
     )
 
@@ -259,7 +259,7 @@ async def test_notification_disabled_by_setting(hass, mock_config_entry, monkeyp
         weather_entity="",
         outdoor_unavailable_notify=False,
     )
-    hass.data = {"roommind": {"store": store}}
+    hass.data = {"roommind_cc": {"store": store}}
     hass.states.get = MagicMock(side_effect=make_mock_states_get(outdoor_temp=None))
     hass.services.async_call = AsyncMock()
 
@@ -276,18 +276,18 @@ async def test_notification_dismissed_when_outdoor_returns(hass, mock_config_ent
     create_mock = MagicMock()
     dismiss_mock = MagicMock()
     monkeypatch.setattr(
-        "custom_components.roommind.coordinator.async_create_notification",
+        "custom_components.roommind_cc.coordinator.async_create_notification",
         create_mock,
     )
     monkeypatch.setattr(
-        "custom_components.roommind.coordinator.async_dismiss_notification",
+        "custom_components.roommind_cc.coordinator.async_dismiss_notification",
         dismiss_mock,
     )
 
     store = _make_store_mock(rooms={"living_room_abc12345": SAMPLE_ROOM})
     settings = _settings_with(outdoor_temp_sensor="sensor.outdoor_temp", weather_entity="")
     store.get_settings.return_value = settings
-    hass.data = {"roommind": {"store": store}}
+    hass.data = {"roommind_cc": {"store": store}}
 
     outdoor_value = {"v": None}
 

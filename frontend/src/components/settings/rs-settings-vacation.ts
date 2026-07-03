@@ -8,7 +8,7 @@ import type { HomeAssistant } from "../../types";
 import { localize } from "../../utils/localize";
 import { toDisplay, toCelsius, tempUnit, tempStep, tempRange } from "../../utils/temperature";
 
-@customElement("rs-settings-vacation")
+@customElement("rmc-settings-vacation")
 export class RsSettingsVacation extends RsSettingsBase {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: Boolean }) public vacationActive = false;
@@ -72,6 +72,6 @@ export class RsSettingsVacation extends RsSettingsBase {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-settings-vacation": RsSettingsVacation;
+    "rmc-settings-vacation": RsSettingsVacation;
   }
 }

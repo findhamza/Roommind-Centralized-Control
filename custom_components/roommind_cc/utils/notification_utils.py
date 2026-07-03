@@ -17,7 +17,7 @@ from homeassistant.core import HomeAssistant
 
 _LOGGER = logging.getLogger(__name__)
 
-NOTIF_PREFIX = "roommind_mold_"
+NOTIF_PREFIX = "roommind_cc_mold_"
 
 
 class NotificationThrottler:
@@ -112,7 +112,7 @@ async def async_send_mold_notification(
                     "title": title,
                     "data": {
                         "tag": tag,
-                        "group": "roommind",
+                        "group": "roommind_cc",
                     },
                 },
             )

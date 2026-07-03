@@ -30,7 +30,11 @@ async def async_setup_entry(
     store = hass.data[DOMAIN]["store"]
     coordinator.async_add_binary_sensor_entities = async_add_entities
     rooms = store.get_rooms()
+    # Per-zone forcing indicators for configured priority zones
     entities: list[BinarySensorEntity] = []
+    for zone in store.get_settings().get("priority_zones") or []:
+        if zone.get("id"):
+            entities.append(RoomMindZoneForcingSensor(coordinator, zone["id"], zone.get("name", "")))
     for area_id, room in rooms.items():
         if room.get("covers"):
             entities.extend(_create_room_binary_sensors(coordinator, area_id))
@@ -59,3 +63,33 @@ class RoomMindCoverPausedSensor(CoordinatorEntity, BinarySensorEntity):
             return False
         room = self.coordinator.data.get("rooms", {}).get(self._area_id)
         return bool(room.get("cover_auto_paused", False)) if room else False
+
+
+class RoomMindZoneForcingSensor(CoordinatorEntity, BinarySensorEntity):
+    """On while a priority zone is actively biasing its thermostat."""
+
+    _attr_has_entity_name = True
+
+    def __init__(self, coordinator: RoomMindCoordinator, zone_id: str, zone_name: str = "") -> None:
+        super().__init__(coordinator)
+        self._zone_id = zone_id
+        self._attr_unique_id = f"{DOMAIN}_zone_{zone_id}_forcing"
+        self._attr_name = f"{zone_name or zone_id} Zone Forcing"
+        self._attr_icon = "mdi:fan-alert"
+        self.entity_id = f"binary_sensor.{DOMAIN}_zone_{zone_id}_forcing"
+
+    @property
+    def is_on(self) -> bool:
+        """Return True while a forcing session is active in this zone."""
+        data = self.coordinator.priority_zone_data.get(self._zone_id) or {}
+        return bool(data.get("forcing", False))
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        """Expose direction and active room for quick automation access."""
+        data = self.coordinator.priority_zone_data.get(self._zone_id) or {}
+        return {
+            "direction": data.get("direction"),
+            "active_room": data.get("active_room"),
+            "reason": data.get("reason"),
+        }

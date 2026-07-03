@@ -7,7 +7,7 @@ import time
 
 import pytest
 
-from custom_components.roommind.utils.history_store import HistoryStore
+from custom_components.roommind_cc.utils.history_store import HistoryStore
 
 
 @pytest.fixture
@@ -407,7 +407,7 @@ def test_rotate_trims_old_history(history_dir):
     """rotate() should trim history records older than HISTORY_MAX_AGE."""
     import time as _time
 
-    from custom_components.roommind.utils.history_store import HISTORY_MAX_AGE
+    from custom_components.roommind_cc.utils.history_store import HISTORY_MAX_AGE
 
     store = HistoryStore(history_dir)
     # Write one very old record directly into history
@@ -462,7 +462,7 @@ def test_device_setpoint_missing_defaults_empty(history_dir):
 
 def test_migrate_header_rewrites_old_format(history_dir):
     """CSV with outdated header is rewritten with current DETAIL_FIELDS."""
-    from custom_components.roommind.utils.history_store import DETAIL_FIELDS
+    from custom_components.roommind_cc.utils.history_store import DETAIL_FIELDS
 
     store = HistoryStore(history_dir)
     os.makedirs(history_dir, exist_ok=True)

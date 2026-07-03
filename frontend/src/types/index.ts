@@ -86,6 +86,42 @@ export interface CompressorGroup {
   enforce_uniform_mode: boolean;
 }
 
+export type SingleZoneCondition = "always" | "occupied" | "schedule" | "sleep";
+
+export interface SingleZonePriorityRoom {
+  area_id: string;
+  condition: SingleZoneCondition;
+  schedule_entity: string;
+}
+
+/** One priority zone (single-thermostat supervisory control). °C on the wire. */
+export interface PriorityZone {
+  id: string;
+  name: string;
+  enabled: boolean;
+  thermostat_entity: string;
+  zone_rooms: string[];
+  main_area_id: string;
+  main_temp_sensor: string;
+  priority_rooms: SingleZonePriorityRoom[];
+  sleep_mode_entity: string;
+  cool_start_threshold: number;
+  cool_stop_threshold: number;
+  heat_start_threshold: number;
+  heat_stop_threshold: number;
+  cool_bias: number;
+  heat_bias: number;
+  max_cool_offset: number;
+  max_heat_offset: number;
+  main_min_temp: number;
+  main_max_temp: number;
+  min_run_minutes: number;
+  min_off_minutes: number;
+  dynamic_bias: boolean;
+  priority_wins: boolean;
+  restore_behavior: "restore" | "leave";
+}
+
 export interface RoomConfig {
   area_id: string;
   thermostats: string[];
@@ -172,6 +208,7 @@ export interface GlobalSettings {
   mold_prevention_notify_enabled?: boolean;
   mold_prevention_notify_targets?: NotificationTarget[];
   compressor_groups?: CompressorGroup[];
+  priority_zones?: PriorityZone[];
   room_order?: string[];
   group_by_floor?: boolean;
   boost_applied_at?: Record<string, number>;

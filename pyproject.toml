@@ -24,7 +24,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["custom_components.roommind"]
+known-first-party = ["custom_components.roommind_cc"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -42,7 +42,7 @@ follow_imports = "skip"
 relative_files = true
 
 [tool.mutmut]
-paths_to_mutate = ["custom_components/roommind/"]
+paths_to_mutate = ["custom_components/roommind_cc/"]
 tests_dir = ["tests/"]
 do_not_mutate = [
     "**/const.py",        # constants, no logic

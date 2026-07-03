@@ -10,7 +10,7 @@ import { fireSaveStatus, getSelectValue } from "../../utils/events";
 
 const BOOST_COOLDOWN = 250;
 
-@customElement("rs-settings-learning")
+@customElement("rmc-settings-learning")
 export class RsSettingsLearning extends RsSettingsBase {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ attribute: false }) public rooms: Record<string, RoomConfig> = {};
@@ -163,7 +163,7 @@ export class RsSettingsLearning extends RsSettingsBase {
     try {
       fireSaveStatus(this, "saving");
       const result = await this.hass.callWS<{ n_observations: number }>({
-        type: "roommind/model/boost_learning",
+        type: "roommind_cc/model/boost_learning",
         area_id: areaId,
       });
       fireSaveStatus(this, "saved");
@@ -274,6 +274,6 @@ export class RsSettingsLearning extends RsSettingsBase {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-settings-learning": RsSettingsLearning;
+    "rmc-settings-learning": RsSettingsLearning;
   }
 }

@@ -7,7 +7,7 @@ from unittest.mock import ANY, AsyncMock, MagicMock, call, patch
 
 import pytest
 
-from custom_components.roommind.const import MODE_IDLE
+from custom_components.roommind_cc.const import MODE_IDLE
 
 from .conftest import (
     SAMPLE_ROOM,
@@ -28,7 +28,7 @@ class TestRoomMindCoordinator:
             "window_sensors": ["binary_sensor.living_room_window"],
         }
         store = _make_store_mock({"living_room_abc12345": room_with_window})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
@@ -68,7 +68,7 @@ class TestRoomMindCoordinator:
             "window_sensors": ["binary_sensor.living_room_window"],
         }
         store = _make_store_mock({"living_room_abc12345": room_with_window})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
@@ -92,7 +92,7 @@ class TestRoomMindCoordinator:
             "window_sensors": ["binary_sensor.living_room_window"],
         }
         store = _make_store_mock({"living_room_abc12345": room_with_window})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
@@ -116,7 +116,7 @@ class TestRoomMindCoordinator:
             "window_sensors": [],
         }
         store = _make_store_mock({"living_room_abc12345": room_with_no_windows})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(side_effect=make_mock_states_get())
         hass.services.async_call = AsyncMock()
@@ -136,7 +136,7 @@ class TestRoomMindCoordinator:
             "window_sensors": ["binary_sensor.window1", "binary_sensor.window2"],
         }
         store = _make_store_mock({"living_room_abc12345": room_with_windows})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
@@ -164,7 +164,7 @@ class TestRoomMindCoordinator:
             "window_open_delay": 120,
         }
         store = _make_store_mock({"living_room_abc12345": room_with_delay})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
@@ -191,7 +191,7 @@ class TestRoomMindCoordinator:
             "window_open_delay": 120,
         }
         store = _make_store_mock({"living_room_abc12345": room_with_delay})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
@@ -219,7 +219,7 @@ class TestRoomMindCoordinator:
             "window_close_delay": 300,
         }
         store = _make_store_mock({"living_room_abc12345": room_with_delay})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
@@ -246,7 +246,7 @@ class TestRoomMindCoordinator:
             "window_close_delay": 300,
         }
         store = _make_store_mock({"living_room_abc12345": room_with_delay})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
@@ -280,7 +280,7 @@ class TestRoomMindCoordinator:
             "window_open_delay": 120,
         }
         store = _make_store_mock({"living_room_abc12345": room_with_delay})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
@@ -330,7 +330,7 @@ class TestRoomMindCoordinator:
             "heating_system_type": "underfloor",
         }
         store = _make_store_mock({"living_room_abc12345": room_with_window})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
@@ -370,7 +370,7 @@ class TestRoomMindCoordinator:
             "window_sensors": ["binary_sensor.living_room_window"],
         }
         store = _make_store_mock({"living_room_abc12345": room_with_window})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
@@ -403,7 +403,7 @@ class TestRoomMindCoordinator:
             "window_close_delay": 0,
         }
         store = _make_store_mock({"living_room_abc12345": room_zero_delay})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
@@ -428,7 +428,7 @@ class TestRoomMindCoordinator:
             "window_open_delay": 120,
         }
         store = _make_store_mock({"living_room_abc12345": room_with_delay})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         # First call: window is open -- delay timer starts but not reached
         mock_states = {}

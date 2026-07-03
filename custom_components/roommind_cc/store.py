@@ -117,7 +117,8 @@ class RoomMindStore:
                 _migrate_override_fields(room)
                 override_migrated += 1
         orphan_settings_removed = [k for k in _ORPHAN_SETTINGS_KEYS if self._settings.pop(k, None) is not None]
-        if device_migrated or hp_migrated or override_migrated or orphan_settings_removed:
+        zone_migrated = self._migrate_single_zone_settings()
+        if device_migrated or hp_migrated or override_migrated or orphan_settings_removed or zone_migrated:
             await self._async_save()
         if device_migrated:
             _LOGGER.info("Migrated %d room(s) to unified device model", device_migrated)
@@ -127,6 +128,23 @@ class RoomMindStore:
             _LOGGER.info("Migrated %d room(s) to split override heat/cool", override_migrated)
         if orphan_settings_removed:
             _LOGGER.info("Removed orphan setting(s): %s", ", ".join(orphan_settings_removed))
+        if zone_migrated:
+            _LOGGER.info("Migrated legacy single_zone settings to priority_zones list")
+
+    def _migrate_single_zone_settings(self) -> bool:
+        """Migrate the legacy single ``single_zone`` blob to ``priority_zones``.
+
+        The single-zone priority room feature originally supported one zone
+        stored as a dict; multi-thermostat homes need a list. Wraps the old
+        blob as zone "zone_1" unless a priority_zones list already exists.
+        """
+        legacy = self._settings.pop("single_zone", None)
+        if legacy is None:
+            return False
+        if not self._settings.get("priority_zones") and isinstance(legacy, dict):
+            zone = {"id": "zone_1", "name": "Zone 1", **legacy}
+            self._settings["priority_zones"] = [zone]
+        return True
 
     async def _async_save(self) -> None:
         """Persist current room data to the HA store."""

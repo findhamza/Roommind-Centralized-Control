@@ -6,7 +6,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import "../shared/rs-badge";
 
-@customElement("rs-settings-panel")
+@customElement("rmc-settings-panel")
 export class RsSettingsPanel extends LitElement {
   @property({ type: String }) public icon = "";
   @property({ type: String }) public heading = "";
@@ -21,7 +21,7 @@ export class RsSettingsPanel extends LitElement {
           <ha-icon .icon=${this.icon}></ha-icon>
           <span>${this.heading}</span>
           ${this.badge
-            ? html`<rs-badge .label=${this.badge} .hint=${this.badgeHint}></rs-badge>`
+            ? html`<rmc-badge .label=${this.badge} .hint=${this.badgeHint}></rmc-badge>`
             : nothing}
         </div>
         <div class="panel-content">
@@ -67,6 +67,6 @@ export class RsSettingsPanel extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-settings-panel": RsSettingsPanel;
+    "rmc-settings-panel": RsSettingsPanel;
   }
 }

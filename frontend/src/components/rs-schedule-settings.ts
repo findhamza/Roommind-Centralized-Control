@@ -13,7 +13,7 @@ import {
 import { RsScheduleBase } from "./shared/rs-schedule-base";
 import { inputStyles } from "../styles/input-styles";
 
-@customElement("rs-schedule-settings")
+@customElement("rmc-schedule-settings")
 export class RsScheduleSettings extends RsScheduleBase {
   @property({ attribute: false }) public schedules: ScheduleEntry[] = [];
   /** Alias: parent passes .scheduleSelectorEntity, base uses selectorEntity. */
@@ -556,6 +556,6 @@ export class RsScheduleSettings extends RsScheduleBase {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-schedule-settings": RsScheduleSettings;
+    "rmc-schedule-settings": RsScheduleSettings;
   }
 }

@@ -8,7 +8,7 @@ import type { HomeAssistant } from "../../types";
 import { localize } from "../../utils/localize";
 import { getSelectValue } from "../../utils/events";
 
-@customElement("rs-settings-presence")
+@customElement("rmc-settings-presence")
 export class RsSettingsPresence extends RsSettingsBase {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: Boolean }) public presenceEnabled = false;
@@ -148,6 +148,6 @@ export class RsSettingsPresence extends RsSettingsBase {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-settings-presence": RsSettingsPresence;
+    "rmc-settings-presence": RsSettingsPresence;
   }
 }

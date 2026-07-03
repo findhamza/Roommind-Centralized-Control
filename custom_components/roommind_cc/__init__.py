@@ -1,4 +1,9 @@
-"""RoomMind – Holistic room climate management for Home Assistant."""
+"""RoomMind CC – Holistic room climate management for Home Assistant.
+
+A fork of RoomMind with its own domain ("roommind_cc") so it can be
+installed side by side with upstream RoomMind: separate storage, panel,
+websocket API, and entities.
+"""
 
 from __future__ import annotations
 
@@ -28,18 +33,17 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up the RoomMind integration (YAML, runs once)."""
+    """Set up the RoomMind CC integration (YAML, runs once)."""
     hass.data.setdefault(DOMAIN, {})
     async_register_websocket_commands(hass)
     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up RoomMind from a config entry."""
+    """Set up RoomMind CC from a config entry."""
     # Ensure the store is created and loaded (once across all entries)
     store = hass.data[DOMAIN].get("store")
     if not store:
-        await _async_migrate_storage(hass)
         store = RoomMindStore(hass)
         await store.async_load()
         hass.data[DOMAIN]["store"] = store
@@ -61,58 +65,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-async def _async_migrate_storage(hass: HomeAssistant) -> None:
-    """Migrate storage from old 'roomsense' name if present."""
-    storage_dir = Path(hass.config.path(".storage"))
-    await hass.async_add_executor_job(_migrate_storage_sync, storage_dir)
-
-
-def _migrate_storage_sync(storage_dir: Path) -> None:
-    """Blocking portion of storage migration — must run in an executor."""
-    # Rename main storage file
-    old_path = storage_dir / "roomsense"
-    new_path = storage_dir / "roommind"
-    if old_path.exists() and not new_path.exists():
-        old_path.rename(new_path)
-        _LOGGER.info("Migrated storage file from 'roomsense' to 'roommind'")
-    # Update the internal storage key so HA's Store recognises the data
-    if new_path.exists():
-        try:
-            data = json.loads(new_path.read_text())
-            if data.get("key") == "roomsense":
-                data["key"] = "roommind"
-                new_path.write_text(json.dumps(data, indent=2))
-                _LOGGER.info("Migrated storage key from 'roomsense' to 'roommind'")
-        except Exception:  # noqa: BLE001
-            _LOGGER.warning("Failed to migrate storage key")
-    # Migrate history CSV directory
-    import shutil
-
-    old_history = storage_dir / "roomsense_history"
-    new_history = storage_dir / "roommind_history"
-    if old_history.exists():
-        if not new_history.exists():
-            old_history.rename(new_history)
-            _LOGGER.info("Migrated history directory to 'roommind_history'")
-        else:
-            # Both exist — merge old CSVs into new (append old data before new)
-            for old_csv in old_history.iterdir():
-                new_csv = new_history / old_csv.name
-                if new_csv.exists():
-                    old_lines = old_csv.read_text().splitlines()
-                    new_lines = new_csv.read_text().splitlines()
-                    # old_lines[0] is header, old_lines[1:] is data
-                    # new_lines[0] is header, new_lines[1:] is new data
-                    merged = old_lines + new_lines[1:]
-                    new_csv.write_text("\n".join(merged) + "\n")
-                else:
-                    old_csv.rename(new_csv)
-            shutil.rmtree(old_history)
-            _LOGGER.info("Merged old history into 'roommind_history'")
-
-
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a RoomMind config entry."""
+    """Unload a RoomMind CC config entry."""
     unload_ok: bool = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
@@ -120,7 +74,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Remove panel if no entries remain
     if not hass.data[DOMAIN]:
-        async_remove_panel(hass, "roommind")
+        async_remove_panel(hass, "roommind-cc")
 
     return unload_ok
 
@@ -145,7 +99,7 @@ async def _async_check_version_mismatch(hass: HomeAssistant) -> None:
             translation_placeholders={"version": disk_version},
         )
         _LOGGER.warning(
-            "RoomMind on disk is %s but running %s – restart required",
+            "RoomMind CC on disk is %s but running %s – restart required",
             disk_version,
             VERSION,
         )
@@ -154,43 +108,48 @@ async def _async_check_version_mismatch(hass: HomeAssistant) -> None:
 
 
 async def _async_register_panel(hass: HomeAssistant) -> None:
-    """Register the RoomMind custom panel in the sidebar."""
+    """Register the RoomMind CC custom panel in the sidebar.
+
+    All identifiers (URL path, static path, custom-element name) are
+    distinct from upstream RoomMind so both integrations can be installed
+    side by side without colliding in the frontend.
+    """
     if hass.data[DOMAIN].get("panel_registered"):
         return
 
-    panel_js = Path(__file__).parent / "frontend" / "roommind-panel.js"
+    panel_js = Path(__file__).parent / "frontend" / "roommind-cc-panel.js"
     if not panel_js.exists():
         _LOGGER.warning(
-            "RoomMind panel JS not found at %s – sidebar panel not registered",
+            "RoomMind CC panel JS not found at %s – sidebar panel not registered",
             panel_js,
         )
         return
 
     try:
         await hass.http.async_register_static_paths(
-            [StaticPathConfig("/roommind/roommind-panel.js", str(panel_js), False)]
+            [StaticPathConfig("/roommind_cc/roommind-cc-panel.js", str(panel_js), False)]
         )
     except RuntimeError:
-        _LOGGER.debug("RoomMind static path already registered")
+        _LOGGER.debug("RoomMind CC static path already registered")
 
     try:
         async_register_built_in_panel(
             hass,
             component_name="custom",
-            sidebar_title="RoomMind",
+            sidebar_title="RoomMind CC",
             sidebar_icon="mdi:home-thermometer",
-            frontend_url_path="roommind",
+            frontend_url_path="roommind-cc",
             config={
                 "_panel_custom": {
-                    "name": "roommind-panel",
+                    "name": "roommind-cc-panel",
                     "embed_iframe": False,
                     "trust_external": False,
-                    "js_url": "/roommind/roommind-panel.js",
+                    "js_url": "/roommind_cc/roommind-cc-panel.js",
                 }
             },
         )
     except ValueError:
-        _LOGGER.debug("RoomMind panel already registered")
+        _LOGGER.debug("RoomMind CC panel already registered")
 
     hass.data[DOMAIN]["panel_registered"] = True
-    _LOGGER.info("RoomMind panel registered in sidebar")
+    _LOGGER.info("RoomMind CC panel registered in sidebar")

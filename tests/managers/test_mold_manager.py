@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from custom_components.roommind.managers.mold_manager import MoldManager
+from custom_components.roommind_cc.managers.mold_manager import MoldManager
 
 
 @pytest.fixture
@@ -40,15 +40,15 @@ async def test_prevention_activation_sends_notification(mm):
 
     with (
         patch(
-            "custom_components.roommind.managers.mold_manager.calculate_mold_risk",
+            "custom_components.roommind_cc.managers.mold_manager.calculate_mold_risk",
             return_value=("warning", 75.0),
         ),
         patch(
-            "custom_components.roommind.managers.mold_manager.mold_prevention_delta",
+            "custom_components.roommind_cc.managers.mold_manager.mold_prevention_delta",
             return_value=2.0,
         ),
         patch(
-            "custom_components.roommind.managers.mold_manager.async_send_mold_notification",
+            "custom_components.roommind_cc.managers.mold_manager.async_send_mold_notification",
             new_callable=AsyncMock,
         ) as mock_notify,
     ):
@@ -78,15 +78,15 @@ async def test_prevention_notification_not_sent_without_helper_fns(mm):
 
     with (
         patch(
-            "custom_components.roommind.managers.mold_manager.calculate_mold_risk",
+            "custom_components.roommind_cc.managers.mold_manager.calculate_mold_risk",
             return_value=("warning", 75.0),
         ),
         patch(
-            "custom_components.roommind.managers.mold_manager.mold_prevention_delta",
+            "custom_components.roommind_cc.managers.mold_manager.mold_prevention_delta",
             return_value=2.0,
         ),
         patch(
-            "custom_components.roommind.managers.mold_manager.async_send_mold_notification",
+            "custom_components.roommind_cc.managers.mold_manager.async_send_mold_notification",
             new_callable=AsyncMock,
         ) as mock_notify,
     ):
@@ -114,15 +114,15 @@ async def test_prevention_notification_not_sent_on_second_evaluation(mm):
 
     with (
         patch(
-            "custom_components.roommind.managers.mold_manager.calculate_mold_risk",
+            "custom_components.roommind_cc.managers.mold_manager.calculate_mold_risk",
             return_value=("warning", 75.0),
         ),
         patch(
-            "custom_components.roommind.managers.mold_manager.mold_prevention_delta",
+            "custom_components.roommind_cc.managers.mold_manager.mold_prevention_delta",
             return_value=2.0,
         ),
         patch(
-            "custom_components.roommind.managers.mold_manager.async_send_mold_notification",
+            "custom_components.roommind_cc.managers.mold_manager.async_send_mold_notification",
             new_callable=AsyncMock,
         ) as mock_notify,
     ):
@@ -163,15 +163,15 @@ async def test_remove_room_clears_state(mm):
 
     with (
         patch(
-            "custom_components.roommind.managers.mold_manager.calculate_mold_risk",
+            "custom_components.roommind_cc.managers.mold_manager.calculate_mold_risk",
             return_value=("warning", 75.0),
         ),
         patch(
-            "custom_components.roommind.managers.mold_manager.mold_prevention_delta",
+            "custom_components.roommind_cc.managers.mold_manager.mold_prevention_delta",
             return_value=2.0,
         ),
         patch(
-            "custom_components.roommind.managers.mold_manager.async_send_mold_notification",
+            "custom_components.roommind_cc.managers.mold_manager.async_send_mold_notification",
             new_callable=AsyncMock,
         ),
     ):
@@ -216,11 +216,11 @@ async def test_detection_notification_sent_on_risk(mm):
 
     with (
         patch(
-            "custom_components.roommind.managers.mold_manager.calculate_mold_risk",
+            "custom_components.roommind_cc.managers.mold_manager.calculate_mold_risk",
             return_value=("warning", 75.0),
         ),
         patch(
-            "custom_components.roommind.managers.mold_manager.async_send_mold_notification",
+            "custom_components.roommind_cc.managers.mold_manager.async_send_mold_notification",
             new_callable=AsyncMock,
         ) as mock_notify,
     ):
@@ -249,15 +249,15 @@ async def test_hysteresis_deactivation(mm):
     # First call: activate prevention
     with (
         patch(
-            "custom_components.roommind.managers.mold_manager.calculate_mold_risk",
+            "custom_components.roommind_cc.managers.mold_manager.calculate_mold_risk",
             return_value=("warning", 75.0),
         ),
         patch(
-            "custom_components.roommind.managers.mold_manager.mold_prevention_delta",
+            "custom_components.roommind_cc.managers.mold_manager.mold_prevention_delta",
             return_value=2.0,
         ),
         patch(
-            "custom_components.roommind.managers.mold_manager.async_send_mold_notification",
+            "custom_components.roommind_cc.managers.mold_manager.async_send_mold_notification",
             new_callable=AsyncMock,
         ),
     ):
@@ -277,11 +277,11 @@ async def test_hysteresis_deactivation(mm):
     # Second call: surface_rh drops well below MOLD_SURFACE_RH_WARNING - MOLD_HYSTERESIS (70 - 5 = 65)
     with (
         patch(
-            "custom_components.roommind.managers.mold_manager.calculate_mold_risk",
+            "custom_components.roommind_cc.managers.mold_manager.calculate_mold_risk",
             return_value=("ok", 60.0),
         ),
         patch(
-            "custom_components.roommind.managers.mold_manager.dismiss_mold_notification",
+            "custom_components.roommind_cc.managers.mold_manager.dismiss_mold_notification",
         ) as mock_dismiss,
     ):
         r2 = await mm.evaluate(
@@ -320,14 +320,14 @@ async def test_sustained_minutes_delays_notification(mm):
 
     with (
         patch(
-            "custom_components.roommind.managers.mold_manager.calculate_mold_risk",
+            "custom_components.roommind_cc.managers.mold_manager.calculate_mold_risk",
             return_value=("warning", 75.0),
         ),
         patch(
-            "custom_components.roommind.managers.mold_manager.async_send_mold_notification",
+            "custom_components.roommind_cc.managers.mold_manager.async_send_mold_notification",
             new_callable=AsyncMock,
         ) as mock_notify,
-        patch("custom_components.roommind.managers.mold_manager.time") as mock_time,
+        patch("custom_components.roommind_cc.managers.mold_manager.time") as mock_time,
     ):
         # First call at t=1000: risk just started
         mock_time.time.return_value = 1000.0
@@ -377,15 +377,15 @@ async def test_dismiss_notification_on_risk_clear(mm):
     # Activate prevention first
     with (
         patch(
-            "custom_components.roommind.managers.mold_manager.calculate_mold_risk",
+            "custom_components.roommind_cc.managers.mold_manager.calculate_mold_risk",
             return_value=("warning", 75.0),
         ),
         patch(
-            "custom_components.roommind.managers.mold_manager.mold_prevention_delta",
+            "custom_components.roommind_cc.managers.mold_manager.mold_prevention_delta",
             return_value=2.0,
         ),
         patch(
-            "custom_components.roommind.managers.mold_manager.async_send_mold_notification",
+            "custom_components.roommind_cc.managers.mold_manager.async_send_mold_notification",
             new_callable=AsyncMock,
         ),
     ):
@@ -403,11 +403,11 @@ async def test_dismiss_notification_on_risk_clear(mm):
     # Now clear risk
     with (
         patch(
-            "custom_components.roommind.managers.mold_manager.calculate_mold_risk",
+            "custom_components.roommind_cc.managers.mold_manager.calculate_mold_risk",
             return_value=("ok", 60.0),
         ),
         patch(
-            "custom_components.roommind.managers.mold_manager.dismiss_mold_notification",
+            "custom_components.roommind_cc.managers.mold_manager.dismiss_mold_notification",
         ) as mock_dismiss,
     ):
         await mm.evaluate(

@@ -6,9 +6,9 @@ import math
 
 import pytest
 
-from custom_components.roommind.const import MIN_POWER_FRACTION, MODE_COOLING, MODE_HEATING
-from custom_components.roommind.control.mpc_optimizer import MPCOptimizer, MPCPlan
-from custom_components.roommind.control.thermal_model import RCModel
+from custom_components.roommind_cc.const import MIN_POWER_FRACTION, MODE_COOLING, MODE_HEATING
+from custom_components.roommind_cc.control.mpc_optimizer import MPCOptimizer, MPCPlan
+from custom_components.roommind_cc.control.thermal_model import RCModel
 
 
 def test_optimizer_idle_at_target():
@@ -220,7 +220,7 @@ def test_get_current_power_fraction_fallback():
 
 def test_power_fraction_clamped():
     """Power fraction should always be in [MIN_POWER_FRACTION, 1.0] when active."""
-    from custom_components.roommind.const import MIN_POWER_FRACTION
+    from custom_components.roommind_cc.const import MIN_POWER_FRACTION
 
     model = RCModel(C=2.0, U=50.0, Q_heat=1000.0, Q_cool=1500.0)
     opt = MPCOptimizer(model)

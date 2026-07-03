@@ -2,7 +2,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import "./rs-toggle-row";
 
-@customElement("rs-toggle-card")
+@customElement("rmc-toggle-card")
 export class RsToggleCard extends LitElement {
   @property({ type: String }) public icon = "";
   @property({ type: String }) public label = "";
@@ -33,7 +33,7 @@ export class RsToggleCard extends LitElement {
       flex-shrink: 0;
     }
 
-    rs-toggle-row {
+    rmc-toggle-row {
       flex: 1;
       min-width: 0;
     }
@@ -44,13 +44,13 @@ export class RsToggleCard extends LitElement {
       <ha-card>
         <div class="row">
           ${this.icon ? html`<ha-icon class="icon" icon=${this.icon}></ha-icon>` : nothing}
-          <rs-toggle-row
+          <rmc-toggle-row
             .label=${this.label}
             .hint=${this.hint}
             .checked=${this.checked}
             .disabled=${this.disabled}
             @toggle-changed=${this._onToggle}
-          ></rs-toggle-row>
+          ></rmc-toggle-row>
         </div>
       </ha-card>
     `;
@@ -70,6 +70,6 @@ export class RsToggleCard extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-toggle-card": RsToggleCard;
+    "rmc-toggle-card": RsToggleCard;
   }
 }

@@ -11,7 +11,7 @@ import { inputStyles } from "../styles/input-styles";
 import "./shared/rs-master-detail";
 import "./shared/rs-info-icon";
 
-@customElement("rs-device-section")
+@customElement("rmc-device-section")
 export class RsDeviceSection extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ attribute: false }) public area!: HassArea;
@@ -448,7 +448,7 @@ export class RsDeviceSection extends LitElement {
     const detailId = this._selectedForEdit;
 
     return html`
-      <rs-master-detail>
+      <rmc-master-detail>
         <div slot="master" class="master">
           <div class="section-subtitle">
             ${localize("devices.climate_entities", this.hass.language)}
@@ -481,7 +481,7 @@ export class RsDeviceSection extends LitElement {
                 <span>${localize("devices.select_to_configure", this.hass.language)}</span>
               </div>`}
         </div>
-      </rs-master-detail>
+      </rmc-master-detail>
 
       ${this._selectedThermostats.size > 0
         ? html`
@@ -746,9 +746,9 @@ export class RsDeviceSection extends LitElement {
                 >
               </ha-select>
               ${device.idle_action === "low"
-                ? html`<rs-info-icon
+                ? html`<rmc-info-icon
                     .text=${localize("devices.idle_action_low_hint", lang)}
-                  ></rs-info-icon>`
+                  ></rmc-info-icon>`
                 : nothing}
             </div>
           `
@@ -780,7 +780,7 @@ export class RsDeviceSection extends LitElement {
                   >${localize("devices.setpoint_mode_direct", lang)}</ha-list-item
                 >
               </ha-select>
-              <rs-info-icon .text=${localize("devices.setpoint_mode_hint", lang)}></rs-info-icon>
+              <rmc-info-icon .text=${localize("devices.setpoint_mode_hint", lang)}></rmc-info-icon>
             </div>
           `
         : nothing}
@@ -797,9 +797,9 @@ export class RsDeviceSection extends LitElement {
               <div class="detail-toggle-label">
                 <ha-icon icon="mdi:shield-off-outline"></ha-icon>
                 ${localize("devices.valve_protection_excluded", lang)}
-                <rs-info-icon
+                <rmc-info-icon
                   .text=${localize("devices.valve_protection_exclude_hint", lang)}
-                ></rs-info-icon>
+                ></rmc-info-icon>
               </div>
             </div>
           `
@@ -932,6 +932,6 @@ export class RsDeviceSection extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-device-section": RsDeviceSection;
+    "rmc-device-section": RsDeviceSection;
   }
 }

@@ -5,7 +5,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
-@customElement("rs-badge")
+@customElement("rmc-badge")
 export class RsBadge extends LitElement {
   @property({ type: String }) public label = "";
   @property({ type: String }) public hint = "";
@@ -35,6 +35,6 @@ export class RsBadge extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-badge": RsBadge;
+    "rmc-badge": RsBadge;
   }
 }

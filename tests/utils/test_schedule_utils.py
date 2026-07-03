@@ -9,8 +9,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.roommind.const import TargetTemps
-from custom_components.roommind.utils.schedule_utils import (
+from custom_components.roommind_cc.const import TargetTemps
+from custom_components.roommind_cc.utils.schedule_utils import (
     get_active_schedule_entity,
     make_target_resolver,
     read_schedule_blocks,
@@ -775,7 +775,7 @@ class TestResolveTargetsAtTime:
 
     def test_comfort_fields_when_schedule_on(self):
         """Inside a schedule block without custom temp returns comfort_heat/comfort_cool."""
-        from custom_components.roommind.utils.schedule_utils import resolve_targets_at_time
+        from custom_components.roommind_cc.utils.schedule_utils import resolve_targets_at_time
 
         dt = datetime(2025, 1, 6, 10, 0, 0)  # Monday 10:00
         ts = dt.timestamp()
@@ -801,7 +801,7 @@ class TestResolveTargetsAtTime:
 
     def test_eco_fields_when_schedule_off(self):
         """Outside schedule blocks returns eco_heat/eco_cool."""
-        from custom_components.roommind.utils.schedule_utils import resolve_targets_at_time
+        from custom_components.roommind_cc.utils.schedule_utils import resolve_targets_at_time
 
         dt = datetime(2025, 1, 6, 6, 0, 0)  # Monday 06:00 - before blocks
         ts = dt.timestamp()
@@ -827,7 +827,7 @@ class TestResolveTargetsAtTime:
 
     def test_presence_away_action_off_returns_none_none(self):
         """presence_away_action='off' returns TargetTemps(None, None)."""
-        from custom_components.roommind.utils.schedule_utils import resolve_targets_at_time
+        from custom_components.roommind_cc.utils.schedule_utils import resolve_targets_at_time
 
         now = time.time()
         result = resolve_targets_at_time(
@@ -849,7 +849,7 @@ class TestResolveTargetsAtTime:
 
     def test_presence_away_eco_returns_eco_temps(self):
         """presence_away_action='eco' returns eco heat/cool."""
-        from custom_components.roommind.utils.schedule_utils import resolve_targets_at_time
+        from custom_components.roommind_cc.utils.schedule_utils import resolve_targets_at_time
 
         now = time.time()
         result = resolve_targets_at_time(
@@ -871,7 +871,7 @@ class TestResolveTargetsAtTime:
 
     def test_override_creates_single_point(self):
         """Active override creates TargetTemps(heat=override, cool=override)."""
-        from custom_components.roommind.utils.schedule_utils import resolve_targets_at_time
+        from custom_components.roommind_cc.utils.schedule_utils import resolve_targets_at_time
 
         now = time.time()
         result = resolve_targets_at_time(
@@ -891,7 +891,7 @@ class TestResolveTargetsAtTime:
 
     def test_presence_clears_override_suppresses_override(self):
         """presence_clears_override=True + presence_away skips override branch (#306)."""
-        from custom_components.roommind.utils.schedule_utils import resolve_targets_at_time
+        from custom_components.roommind_cc.utils.schedule_utils import resolve_targets_at_time
 
         now = time.time()
         result = resolve_targets_at_time(
@@ -913,7 +913,7 @@ class TestResolveTargetsAtTime:
 
     def test_presence_clears_override_disabled_keeps_override(self):
         """presence_clears_override=False keeps override active even when away."""
-        from custom_components.roommind.utils.schedule_utils import resolve_targets_at_time
+        from custom_components.roommind_cc.utils.schedule_utils import resolve_targets_at_time
 
         now = time.time()
         result = resolve_targets_at_time(
@@ -935,7 +935,7 @@ class TestResolveTargetsAtTime:
 
     def test_schedule_block_with_temperature_creates_single_point(self):
         """Schedule block with custom temperature creates TargetTemps(heat=t, cool=t)."""
-        from custom_components.roommind.utils.schedule_utils import resolve_targets_at_time
+        from custom_components.roommind_cc.utils.schedule_utils import resolve_targets_at_time
 
         dt = datetime(2025, 1, 6, 10, 0, 0)  # Monday 10:00
         ts = dt.timestamp()
@@ -961,7 +961,7 @@ class TestResolveTargetsAtTime:
 
     def test_override_returns_split_dead_band(self):
         """Active override with both targets returns split heat/cool dead-band."""
-        from custom_components.roommind.utils.schedule_utils import resolve_targets_at_time
+        from custom_components.roommind_cc.utils.schedule_utils import resolve_targets_at_time
 
         result = resolve_targets_at_time(
             ts=1000.0,
@@ -981,7 +981,7 @@ class TestResolveTargetsAtTime:
 
     def test_override_heat_only_leaves_cool_none(self):
         """Heat-only override keeps cool at None (direction off)."""
-        from custom_components.roommind.utils.schedule_utils import resolve_targets_at_time
+        from custom_components.roommind_cc.utils.schedule_utils import resolve_targets_at_time
 
         result = resolve_targets_at_time(
             ts=1000.0,
@@ -1001,7 +1001,7 @@ class TestResolveTargetsAtTime:
 
     def test_override_expired_falls_through_to_comfort(self):
         """Expired override falls through to comfort targets."""
-        from custom_components.roommind.utils.schedule_utils import resolve_targets_at_time
+        from custom_components.roommind_cc.utils.schedule_utils import resolve_targets_at_time
 
         result = resolve_targets_at_time(
             ts=1000.0,
@@ -1066,7 +1066,7 @@ class TestResolveTargetsAtTimeSplitBlockTemps:
 
     def test_resolve_targets_with_split_block_temps(self):
         """Block with heat_temperature and cool_temperature returns split TargetTemps."""
-        from custom_components.roommind.utils.schedule_utils import resolve_targets_at_time
+        from custom_components.roommind_cc.utils.schedule_utils import resolve_targets_at_time
 
         dt = datetime(2025, 1, 6, 10, 0, 0)  # Monday 10:00
         ts = dt.timestamp()
@@ -1096,7 +1096,7 @@ class TestResolveTargetsAtTimeSplitBlockTemps:
 
     def test_resolve_targets_with_only_heat_block_temp(self):
         """Block with only heat_temperature falls back to comfort_cool."""
-        from custom_components.roommind.utils.schedule_utils import resolve_targets_at_time
+        from custom_components.roommind_cc.utils.schedule_utils import resolve_targets_at_time
 
         dt = datetime(2025, 1, 6, 10, 0, 0)  # Monday 10:00
         ts = dt.timestamp()
@@ -1126,7 +1126,7 @@ class TestResolveTargetsAtTimeSplitBlockTemps:
 
     def test_resolve_targets_with_only_cool_block_temp(self):
         """Block with only cool_temperature falls back to comfort_heat."""
-        from custom_components.roommind.utils.schedule_utils import resolve_targets_at_time
+        from custom_components.roommind_cc.utils.schedule_utils import resolve_targets_at_time
 
         dt = datetime(2025, 1, 6, 10, 0, 0)  # Monday 10:00
         ts = dt.timestamp()
@@ -1156,7 +1156,7 @@ class TestResolveTargetsAtTimeSplitBlockTemps:
 
     def test_resolve_targets_single_temp_still_works(self):
         """Block with only temperature creates single-point (backward compat)."""
-        from custom_components.roommind.utils.schedule_utils import resolve_targets_at_time
+        from custom_components.roommind_cc.utils.schedule_utils import resolve_targets_at_time
 
         dt = datetime(2025, 1, 6, 10, 0, 0)  # Monday 10:00
         ts = dt.timestamp()
@@ -1186,7 +1186,7 @@ class TestResolveTargetsAtTimeSplitBlockTemps:
 
     def test_vacation_cool_target_uses_eco_cool(self):
         """Vacation should keep cool at eco_cool, not collapse to vacation_temp."""
-        from custom_components.roommind.utils.schedule_utils import resolve_targets_at_time
+        from custom_components.roommind_cc.utils.schedule_utils import resolve_targets_at_time
 
         ts = time.time()
         result = resolve_targets_at_time(
@@ -1207,7 +1207,7 @@ class TestResolveTargetsAtTimeSplitBlockTemps:
 
     def test_vacation_cool_target_at_least_vacation_temp(self):
         """If vacation_temp > eco_cool, cool should be vacation_temp (max)."""
-        from custom_components.roommind.utils.schedule_utils import resolve_targets_at_time
+        from custom_components.roommind_cc.utils.schedule_utils import resolve_targets_at_time
 
         ts = time.time()
         result = resolve_targets_at_time(
@@ -1364,7 +1364,7 @@ class TestReadScheduleBlocksLogging:
     async def test_warning_when_cache_empty(self, caplog):
         hass = _make_async_hass(service_raises=RuntimeError("boom"))
         cache: dict = {}
-        with caplog.at_level(logging.DEBUG, logger="custom_components.roommind.utils.schedule_utils"):
+        with caplog.at_level(logging.DEBUG, logger="custom_components.roommind_cc.utils.schedule_utils"):
             await read_schedule_blocks(hass, "schedule.heating", cache=cache)
         warning_records = [r for r in caplog.records if r.levelno == logging.WARNING]
         assert any("schedule.heating" in r.getMessage() for r in warning_records)
@@ -1373,7 +1373,7 @@ class TestReadScheduleBlocksLogging:
     async def test_debug_only_when_cache_covers_failure(self, caplog):
         cache: dict = {"schedule.heating": _SAMPLE_BLOCKS}
         hass = _make_async_hass(service_raises=RuntimeError("boom"))
-        with caplog.at_level(logging.DEBUG, logger="custom_components.roommind.utils.schedule_utils"):
+        with caplog.at_level(logging.DEBUG, logger="custom_components.roommind_cc.utils.schedule_utils"):
             await read_schedule_blocks(hass, "schedule.heating", cache=cache)
         warning_records = [r for r in caplog.records if r.levelno == logging.WARNING]
         debug_records = [r for r in caplog.records if r.levelno == logging.DEBUG]
@@ -1384,7 +1384,7 @@ class TestReadScheduleBlocksLogging:
     async def test_success_logs_nothing(self, caplog):
         hass = _make_async_hass(service_result={"schedule.heating": _SAMPLE_BLOCKS})
         cache: dict = {}
-        with caplog.at_level(logging.DEBUG, logger="custom_components.roommind.utils.schedule_utils"):
+        with caplog.at_level(logging.DEBUG, logger="custom_components.roommind_cc.utils.schedule_utils"):
             await read_schedule_blocks(hass, "schedule.heating", cache=cache)
-        relevant = [r for r in caplog.records if r.name == "custom_components.roommind.utils.schedule_utils"]
+        relevant = [r for r in caplog.records if r.name == "custom_components.roommind_cc.utils.schedule_utils"]
         assert relevant == []

@@ -3,7 +3,7 @@ import { customElement, property } from "lit/decorators.js";
 import { inputStyles } from "../../styles/input-styles";
 import "./rs-info-icon";
 
-@customElement("rs-threshold-field")
+@customElement("rmc-threshold-field")
 export class RsThresholdField extends LitElement {
   @property({ type: String }) public label = "";
   @property({ type: String }) public suffix = "";
@@ -32,7 +32,7 @@ export class RsThresholdField extends LitElement {
         min-width: 0;
       }
 
-      rs-info-icon {
+      rmc-info-icon {
         flex-shrink: 0;
       }
     `,
@@ -51,7 +51,7 @@ export class RsThresholdField extends LitElement {
           type="number"
           @input=${this._onInput}
         ></ha-textfield>
-        ${this.hint ? html`<rs-info-icon .text=${this.hint}></rs-info-icon>` : nothing}
+        ${this.hint ? html`<rmc-info-icon .text=${this.hint}></rmc-info-icon>` : nothing}
       </div>
     `;
   }
@@ -72,6 +72,6 @@ export class RsThresholdField extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-threshold-field": RsThresholdField;
+    "rmc-threshold-field": RsThresholdField;
   }
 }

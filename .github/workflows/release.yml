@@ -27,9 +27,9 @@ jobs:
         run: npm run build
 
       - name: Create release zip
-        run: cd custom_components/roommind && zip -r ../../roommind.zip . -x "__pycache__/*"
+        run: cd custom_components/roommind_cc && zip -r ../../roommind_cc.zip . -x "__pycache__/*"
 
       - name: Upload release asset
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" roommind.zip --clobber
+        run: gh release upload "${{ github.event.release.tag_name }}" roommind_cc.zip --clobber

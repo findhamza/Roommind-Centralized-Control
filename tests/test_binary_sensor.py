@@ -6,12 +6,13 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.roommind.binary_sensor import (
+from custom_components.roommind_cc.binary_sensor import (
     RoomMindCoverPausedSensor,
+    RoomMindZoneForcingSensor,
     _create_room_binary_sensors,
     async_setup_entry,
 )
-from custom_components.roommind.const import DOMAIN
+from custom_components.roommind_cc.const import DOMAIN
 
 
 @pytest.fixture
@@ -52,8 +53,8 @@ def test_cover_paused_missing_key(mock_coordinator):
 def test_binary_sensor_unique_id_and_entity_id(mock_coordinator):
     """Binary sensor has correct unique_id and entity_id."""
     sensor = RoomMindCoverPausedSensor(mock_coordinator, "living_room")
-    assert sensor.unique_id == "roommind_living_room_cover_paused"
-    assert sensor.entity_id == "binary_sensor.roommind_living_room_cover_paused"
+    assert sensor.unique_id == "roommind_cc_living_room_cover_paused"
+    assert sensor.entity_id == "binary_sensor.roommind_cc_living_room_cover_paused"
 
 
 def test_create_room_binary_sensors(mock_coordinator):
@@ -81,6 +82,7 @@ async def test_async_setup_entry_creates_entities_for_rooms_with_covers():
         "living_room": {"covers": ["cover.blinds"]},
         "bedroom": {},  # no covers — should be skipped
     }
+    store.get_settings.return_value = {}
 
     entry = MagicMock()
     entry.entry_id = "test_entry"
@@ -106,12 +108,13 @@ async def test_async_setup_entry_creates_entities_for_rooms_with_covers():
 
 @pytest.mark.asyncio
 async def test_async_setup_entry_no_covers_no_entities():
-    """async_setup_entry does not call async_add_entities when no rooms have covers."""
+    """No entities when no rooms have covers and no zones are configured."""
     coordinator = MagicMock()
     coordinator._binary_sensor_entity_areas = set()
 
     store = MagicMock()
     store.get_rooms.return_value = {"bedroom": {}}
+    store.get_settings.return_value = {}
 
     entry = MagicMock()
     entry.entry_id = "test_entry"
@@ -124,3 +127,29 @@ async def test_async_setup_entry_no_covers_no_entities():
     await async_setup_entry(hass, entry, async_add_entities)
 
     async_add_entities.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_async_setup_entry_creates_zone_forcing_sensors():
+    """One forcing sensor is created per configured priority zone."""
+    coordinator = MagicMock()
+    coordinator._binary_sensor_entity_areas = set()
+
+    store = MagicMock()
+    store.get_rooms.return_value = {}
+    store.get_settings.return_value = {"priority_zones": [{"id": "down", "name": "Downstairs"}]}
+
+    entry = MagicMock()
+    entry.entry_id = "test_entry"
+
+    hass = MagicMock()
+    hass.data = {DOMAIN: {entry.entry_id: coordinator, "store": store}}
+
+    async_add_entities = MagicMock()
+
+    await async_setup_entry(hass, entry, async_add_entities)
+
+    entities = async_add_entities.call_args[0][0]
+    assert len(entities) == 1
+    assert isinstance(entities[0], RoomMindZoneForcingSensor)
+    assert entities[0].entity_id == "binary_sensor.roommind_cc_zone_down_forcing"

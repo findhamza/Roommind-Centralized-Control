@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from custom_components.roommind.const import DEFAULT_COMFORT_TEMP, DEFAULT_ECO_TEMP
+from custom_components.roommind_cc.const import DEFAULT_COMFORT_TEMP, DEFAULT_ECO_TEMP
 
 
 @pytest.mark.asyncio
@@ -252,6 +252,56 @@ async def test_orphan_settings_load_without_them_no_save(store):
 
 
 @pytest.mark.asyncio
+async def test_legacy_single_zone_migrates_to_priority_zones(store):
+    """The legacy single_zone blob is wrapped as priority zone 'zone_1'."""
+    store._store.async_load = AsyncMock(
+        return_value={
+            "rooms": {},
+            "settings": {
+                "single_zone": {
+                    "enabled": True,
+                    "thermostat_entity": "climate.downstairs",
+                    "priority_rooms": [{"area_id": "bedroom", "condition": "sleep"}],
+                },
+            },
+        }
+    )
+    await store.async_load()
+
+    settings = store.get_settings()
+    assert "single_zone" not in settings
+    zones = settings["priority_zones"]
+    assert len(zones) == 1
+    assert zones[0]["id"] == "zone_1"
+    assert zones[0]["enabled"] is True
+    assert zones[0]["thermostat_entity"] == "climate.downstairs"
+    assert zones[0]["priority_rooms"][0]["condition"] == "sleep"
+    # Migration persisted
+    saved = store._store.async_save.call_args[0][0]["settings"]
+    assert "single_zone" not in saved
+    assert saved["priority_zones"][0]["id"] == "zone_1"
+
+
+@pytest.mark.asyncio
+async def test_legacy_single_zone_dropped_when_zones_exist(store):
+    """An existing priority_zones list wins over the legacy blob."""
+    store._store.async_load = AsyncMock(
+        return_value={
+            "rooms": {},
+            "settings": {
+                "single_zone": {"enabled": True, "thermostat_entity": "climate.old"},
+                "priority_zones": [{"id": "down", "thermostat_entity": "climate.new"}],
+            },
+        }
+    )
+    await store.async_load()
+
+    settings = store.get_settings()
+    assert "single_zone" not in settings
+    assert settings["priority_zones"] == [{"id": "down", "thermostat_entity": "climate.new"}]
+
+
+@pytest.mark.asyncio
 async def test_thermal_data_persistence(store):
     """Thermal data can be saved and retrieved."""
     await store.async_load()
@@ -278,7 +328,7 @@ async def test_thermal_data_migration_from_old_store(store):
 @pytest.mark.asyncio
 async def test_migrate_room_temps_adds_split_fields(store):
     """Room with only comfort_temp/eco_temp gets split fields on read."""
-    from custom_components.roommind.const import DEFAULT_COMFORT_COOL, DEFAULT_ECO_COOL
+    from custom_components.roommind_cc.const import DEFAULT_COMFORT_COOL, DEFAULT_ECO_COOL
 
     stored_data = {
         "rooms": {
@@ -649,7 +699,7 @@ async def test_migration_heat_pump_to_ac(store):
 
 
 def test_migrate_override_auto_creates_dead_band():
-    from custom_components.roommind.store import _migrate_override_fields
+    from custom_components.roommind_cc.store import _migrate_override_fields
 
     room = {"climate_mode": "auto", "comfort_cool": 24.0, "override_temp": 21.0}
     _migrate_override_fields(room)
@@ -659,7 +709,7 @@ def test_migrate_override_auto_creates_dead_band():
 
 
 def test_migrate_override_auto_legacy_above_comfort_cool():
-    from custom_components.roommind.store import _migrate_override_fields
+    from custom_components.roommind_cc.store import _migrate_override_fields
 
     room = {"climate_mode": "auto", "comfort_cool": 24.0, "override_temp": 26.0}
     _migrate_override_fields(room)
@@ -668,7 +718,7 @@ def test_migrate_override_auto_legacy_above_comfort_cool():
 
 
 def test_migrate_override_heat_only():
-    from custom_components.roommind.store import _migrate_override_fields
+    from custom_components.roommind_cc.store import _migrate_override_fields
 
     room = {"climate_mode": "heat_only", "override_temp": 22.0}
     _migrate_override_fields(room)
@@ -677,7 +727,7 @@ def test_migrate_override_heat_only():
 
 
 def test_migrate_override_cool_only():
-    from custom_components.roommind.store import _migrate_override_fields
+    from custom_components.roommind_cc.store import _migrate_override_fields
 
     room = {"climate_mode": "cool_only", "override_temp": 22.0}
     _migrate_override_fields(room)
@@ -686,7 +736,7 @@ def test_migrate_override_cool_only():
 
 
 def test_migrate_override_none_value_dropped():
-    from custom_components.roommind.store import _migrate_override_fields
+    from custom_components.roommind_cc.store import _migrate_override_fields
 
     room = {"climate_mode": "auto", "override_temp": None}
     _migrate_override_fields(room)
@@ -696,7 +746,7 @@ def test_migrate_override_none_value_dropped():
 
 
 def test_migrate_override_no_legacy_is_noop():
-    from custom_components.roommind.store import _migrate_override_fields
+    from custom_components.roommind_cc.store import _migrate_override_fields
 
     room = {"climate_mode": "auto", "override_heat": 19.0, "override_cool": 26.0}
     _migrate_override_fields(room)

@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.roommind.const import MODE_IDLE
+from custom_components.roommind_cc.const import MODE_IDLE
 
 from .conftest import (
     MANAGED_ROOM,
@@ -79,7 +79,7 @@ class TestMasterDeviceControl:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -131,7 +131,7 @@ class TestMasterDeviceControl:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -166,7 +166,7 @@ class TestMasterDeviceControl:
 
         hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="18.0"))
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -210,7 +210,7 @@ class TestMasterDeviceControl:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -256,7 +256,7 @@ class TestMasterDeviceControl:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         # Should not raise
@@ -298,7 +298,7 @@ class TestMasterDeviceControl:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -347,7 +347,7 @@ class TestMasterDeviceControl:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -396,7 +396,7 @@ class TestMasterDeviceControl:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -439,7 +439,7 @@ class TestMasterDeviceControl:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         # Should not raise
@@ -529,7 +529,7 @@ class TestMasterDeviceControl:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -581,7 +581,7 @@ class TestMasterDeviceControl:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
 
@@ -633,7 +633,7 @@ class TestMasterDeviceControl:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
 
@@ -719,7 +719,7 @@ class TestMasterDeviceControl:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -767,7 +767,7 @@ class TestMasterDeviceControl:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -822,7 +822,7 @@ class TestMasterDeviceControl:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
 
@@ -917,7 +917,7 @@ class TestEnforceUniformMode:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
 
@@ -1005,7 +1005,7 @@ class TestEnforceUniformMode:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
 
@@ -1040,7 +1040,7 @@ class TestEnforceUniformMode:
 
         hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="18.0"))
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -1069,7 +1069,7 @@ class TestEnforceUniformMode:
 
         hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="18.0"))
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -1168,7 +1168,7 @@ class TestMasterZoneWake:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -1230,7 +1230,7 @@ class TestMasterZoneWake:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -1288,7 +1288,7 @@ class TestMasterZoneWake:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -1340,7 +1340,7 @@ class TestMasterZoneWake:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -1387,7 +1387,7 @@ class TestMasterZoneWake:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         coordinator._compressor_manager.load_groups(store.get_settings.return_value["compressor_groups"])
@@ -1436,7 +1436,7 @@ class TestMasterZoneWake:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         coordinator._compressor_manager.load_groups(store.get_settings.return_value["compressor_groups"])
@@ -1489,7 +1489,7 @@ class TestMasterZoneWake:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -1538,7 +1538,7 @@ class TestMasterZoneWake:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -1608,7 +1608,7 @@ class TestMasterZoneWake:
                 raise RuntimeError("AirTouch rejected fan_only")
 
         hass.services.async_call = AsyncMock(side_effect=selective_fail)
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -1655,7 +1655,7 @@ class TestMasterZoneWake:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -1699,7 +1699,7 @@ class TestMasterZoneWake:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -1761,7 +1761,7 @@ class TestMasterZoneWake:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -1802,7 +1802,7 @@ def _mock_evaluate_heat_sources(active_sources):
 
     ``active_sources=None`` simulates the Orchestrator returning None (fallback).
     """
-    from custom_components.roommind.managers.heat_source_orchestrator import (
+    from custom_components.roommind_cc.managers.heat_source_orchestrator import (
         HeatSourcePlan,
     )
 
@@ -1851,11 +1851,11 @@ class TestMasterOrchestrationAware:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         with _patch(
-            "custom_components.roommind.coordinator.evaluate_heat_sources",
+            "custom_components.roommind_cc.coordinator.evaluate_heat_sources",
             side_effect=_mock_evaluate_heat_sources("secondary"),
         ):
             await coordinator._async_update_data()
@@ -1905,11 +1905,11 @@ class TestMasterOrchestrationAware:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         with _patch(
-            "custom_components.roommind.coordinator.evaluate_heat_sources",
+            "custom_components.roommind_cc.coordinator.evaluate_heat_sources",
             side_effect=_mock_evaluate_heat_sources("primary"),
         ):
             await coordinator._async_update_data()
@@ -1959,11 +1959,11 @@ class TestMasterOrchestrationAware:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         with _patch(
-            "custom_components.roommind.coordinator.evaluate_heat_sources",
+            "custom_components.roommind_cc.coordinator.evaluate_heat_sources",
             side_effect=_mock_evaluate_heat_sources("both"),
         ):
             await coordinator._async_update_data()
@@ -2013,11 +2013,11 @@ class TestMasterOrchestrationAware:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         with _patch(
-            "custom_components.roommind.coordinator.evaluate_heat_sources",
+            "custom_components.roommind_cc.coordinator.evaluate_heat_sources",
             side_effect=_mock_evaluate_heat_sources("primary"),
         ):
             await coordinator._async_update_data()
@@ -2067,11 +2067,11 @@ class TestMasterOrchestrationAware:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         with _patch(
-            "custom_components.roommind.coordinator.evaluate_heat_sources",
+            "custom_components.roommind_cc.coordinator.evaluate_heat_sources",
             side_effect=_mock_evaluate_heat_sources("secondary"),
         ):
             await coordinator._async_update_data()
@@ -2121,11 +2121,11 @@ class TestMasterOrchestrationAware:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         with _patch(
-            "custom_components.roommind.coordinator.evaluate_heat_sources",
+            "custom_components.roommind_cc.coordinator.evaluate_heat_sources",
             side_effect=_mock_evaluate_heat_sources("none"),
         ):
             await coordinator._async_update_data()
@@ -2175,13 +2175,13 @@ class TestMasterOrchestrationAware:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         # Orchestrator returns None -> active_heat_sources stays None -> filter
         # returns True -> master reacts to commanded_mode as before.
         with _patch(
-            "custom_components.roommind.coordinator.evaluate_heat_sources",
+            "custom_components.roommind_cc.coordinator.evaluate_heat_sources",
             side_effect=_mock_evaluate_heat_sources(None),
         ):
             await coordinator._async_update_data()
@@ -2248,11 +2248,11 @@ class TestMasterOrchestrationAware:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         with _patch(
-            "custom_components.roommind.coordinator.evaluate_heat_sources",
+            "custom_components.roommind_cc.coordinator.evaluate_heat_sources",
             side_effect=_mock_evaluate_heat_sources("secondary"),
         ):
             await coordinator._async_update_data()
@@ -2297,7 +2297,7 @@ class TestMasterOrchestrationAware:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         await coordinator._async_update_data()
@@ -2357,13 +2357,13 @@ class TestMasterOrchestrationAware:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         # Orchestrator is short-circuited on non-heating modes anyway,
         # but explicit patch clarifies intent.
         with _patch(
-            "custom_components.roommind.coordinator.evaluate_heat_sources",
+            "custom_components.roommind_cc.coordinator.evaluate_heat_sources",
             side_effect=_mock_evaluate_heat_sources(None),
         ):
             await coordinator._async_update_data()
@@ -2422,11 +2422,11 @@ class TestMasterOrchestrationAware:
 
         hass.states.get = MagicMock(side_effect=states_get)
         hass.services.async_call = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         with _patch(
-            "custom_components.roommind.coordinator.evaluate_heat_sources",
+            "custom_components.roommind_cc.coordinator.evaluate_heat_sources",
             side_effect=_mock_evaluate_heat_sources("secondary"),
         ):
             await coordinator._async_update_data()

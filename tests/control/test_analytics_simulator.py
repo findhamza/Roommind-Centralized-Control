@@ -6,7 +6,7 @@ import time
 
 import pytest
 
-from custom_components.roommind.control.analytics_simulator import (
+from custom_components.roommind_cc.control.analytics_simulator import (
     _simulate_bangbang,
     _simulate_mpc,
     _simulate_window_open,
@@ -15,7 +15,7 @@ from custom_components.roommind.control.analytics_simulator import (
     compute_observed_idle_rate,
     simulate_prediction,
 )
-from custom_components.roommind.control.thermal_model import RCModel, ThermalEKF
+from custom_components.roommind_cc.control.thermal_model import RCModel, ThermalEKF
 
 # ---------------------------------------------------------------------------
 # compute_observed_idle_rate

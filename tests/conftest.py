@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.roommind.control.mpc_controller import clear_command_cache
-from custom_components.roommind.store import RoomMindStore
+from custom_components.roommind_cc.control.mpc_controller import clear_command_cache
+from custom_components.roommind_cc.store import RoomMindStore
 
 
 def make_mock_states_get(

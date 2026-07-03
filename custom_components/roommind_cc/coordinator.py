@@ -36,6 +36,8 @@ from .const import (
     OUTDOOR_UNAVAILABLE_NOTIFICATION_ID,
     OUTDOOR_UNAVAILABLE_NOTIFY_CYCLES,
     SCHEDULE_STATE_ON,
+    SZ_MIN_RATE_OBSERVATIONS,
+    SZ_STATUS_DISABLED,
     THERMAL_SAVE_CYCLES,
     UPDATE_INTERVAL,
     TargetTemps,
@@ -64,6 +66,18 @@ from .managers.ekf_training_manager import EkfTrainingManager
 from .managers.heat_source_orchestrator import HeatSourcePlan, evaluate_heat_sources
 from .managers.mold_manager import MoldManager
 from .managers.residual_heat_tracker import ResidualHeatTracker
+from .managers.single_zone_manager import (
+    SLOT_HIGH,
+    SLOT_LOW,
+    SLOT_TEMPERATURE,
+    PriorityRoomState,
+    SetpointCommand,
+    SingleZoneConfig,
+    SingleZoneDecision,
+    SingleZoneManager,
+    ZoneSnapshot,
+    zones_from_settings,
+)
 from .managers.valve_manager import ValveManager
 from .managers.weather_manager import WeatherManager
 from .managers.window_manager import WindowManager
@@ -78,7 +92,7 @@ from .utils.device_utils import (
 from .utils.history_store import HistoryStore
 from .utils.schedule_utils import resolve_schedule_index
 from .utils.sensor_utils import read_sensor_value
-from .utils.temp_utils import celsius_delta_to_ha, ha_temp_to_celsius, ha_temp_unit_str
+from .utils.temp_utils import celsius_delta_to_ha, celsius_to_ha_temp, ha_temp_to_celsius, ha_temp_unit_str
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -139,6 +153,13 @@ class RoomMindCoordinator(DataUpdateCoordinator):
         self._cover_orchestrator = CoverOrchestrator(hass, self._cover_manager, self._model_manager)
         # Compressor group management (min-run / min-off protection)
         self._compressor_manager = CompressorGroupManager()
+        # Priority zones (central thermostat biasing) — one manager per zone
+        # so forcing sessions and compressor timers stay independent.
+        self._zone_managers: dict[str, SingleZoneManager] = {}
+        self._zone_last_configs: dict[str, SingleZoneConfig] = {}
+        self.priority_zone_data: dict[str, dict] = {}
+        # Zone ids that already have status/forcing/switch entities registered
+        self._zone_entity_ids: set[str] = set()
         # Heat source orchestration state (per room)
         self._heat_source_states: dict[str, str] = {}
         # Track which rooms already have entity platform entities registered
@@ -208,7 +229,7 @@ class RoomMindCoordinator(DataUpdateCoordinator):
 
         # Initialize history store (once)
         if self._history_store is None:
-            self._history_store = HistoryStore(self.hass.config.path(".storage/roommind_history"))
+            self._history_store = HistoryStore(self.hass.config.path(".storage/roommind_cc_history"))
 
         room_states: dict[str, dict] = {}
 
@@ -241,6 +262,9 @@ class RoomMindCoordinator(DataUpdateCoordinator):
 
         # Control master devices based on aggregate room demand
         await self._async_control_master_devices(room_states, rooms, settings)
+
+        # Priority zones: bias each zone's central thermostat setpoint
+        await self._async_control_priority_zones(room_states, rooms, settings)
 
         # Record to history store (throttled)
         learning_disabled = set(settings.get("learning_disabled_rooms", []))
@@ -1018,6 +1042,13 @@ class RoomMindCoordinator(DataUpdateCoordinator):
             ekf_mode = observed_mode  # may be None → skip training
             ekf_pf = observed_pf
 
+        # Single-zone homes: sensor-only rooms served by the central system
+        # get their training label from the central thermostat's hvac_action,
+        # so the EKF learns each room's response to the one shared actuator.
+        zone_label = self._single_zone_training_label(area_id, room, settings)
+        if zone_label is not None:
+            ekf_mode, ekf_pf = zone_label
+
         # --- Observation-based corrections on the training mode (#150, #241) ---
         # Ghost-heating guard: in Full Control the controller's commanded mode
         # can diverge from what the device actually does.  Near target with
@@ -1062,6 +1093,10 @@ class RoomMindCoordinator(DataUpdateCoordinator):
         learning_active = area_id not in learning_disabled
         if learning_active and current_temp_raw is not None and self.outdoor_temp_effective is not None:
             can_heat, can_cool = get_can_heat_cool(room, acs_can_heat=check_acs_can_heat(self.hass, room))
+            if zone_label is not None:
+                # The central system heats and cools this room even though the
+                # room itself has no devices — keep both betas trainable.
+                can_heat = can_cool = True
             self._ekf_training.process(
                 area_id=area_id,
                 current_temp=current_temp_raw,
@@ -1636,6 +1671,54 @@ class RoomMindCoordinator(DataUpdateCoordinator):
 
         await self.async_request_refresh()
 
+    async def async_sync_zone_entities(self) -> None:
+        """Create/remove per-zone entities after a priority_zones change.
+
+        Called from the settings-save websocket handler. Creates status,
+        forcing, and enable entities for new zone ids; removes registry
+        entries for deleted zones.
+        """
+        from homeassistant.helpers import entity_registry as er
+
+        store = self.hass.data[DOMAIN]["store"]
+        zones = store.get_settings().get("priority_zones") or []
+        current_ids = {z["id"] for z in zones if z.get("id")}
+
+        for zone in zones:
+            zone_id = zone.get("id")
+            if not zone_id or zone_id in self._zone_entity_ids:
+                continue
+            name = zone.get("name", "")
+            if self.async_add_entities:
+                from .sensor import RoomMindZoneStatusSensor
+
+                self.async_add_entities([RoomMindZoneStatusSensor(self, zone_id, name)])
+            if self.async_add_binary_sensor_entities:
+                from .binary_sensor import RoomMindZoneForcingSensor
+
+                self.async_add_binary_sensor_entities([RoomMindZoneForcingSensor(self, zone_id, name)])
+            if self.async_add_switch_entities:
+                from .switch import RoomMindZoneEnabledSwitch
+
+                self.async_add_switch_entities([RoomMindZoneEnabledSwitch(self, zone_id, name)])
+            self._zone_entity_ids.add(zone_id)
+
+        # Remove registry entries for deleted zones
+        removed = self._zone_entity_ids - current_ids
+        if removed:
+            registry = er.async_get(self.hass)
+            to_remove = [
+                entry.entity_id
+                for entry in registry.entities.values()
+                if isinstance(entry.unique_id, str)
+                and any(entry.unique_id.startswith(f"{DOMAIN}_zone_{zid}_") for zid in removed)
+            ]
+            for entity_id in to_remove:
+                registry.async_remove(entity_id)
+            self._zone_entity_ids -= removed
+
+        await self.async_request_refresh()
+
     def cleanup_orphaned_entities(self) -> None:
         """Remove entities that no longer match any registered entity type.
 
@@ -1650,8 +1733,10 @@ class RoomMindCoordinator(DataUpdateCoordinator):
         # Known valid suffixes for each condition
         always_valid = ("_target_temp", "_mode", "_override", "_climate_control")
         cover_only = ("_cover_auto", "_cover_paused")
+        zone_suffixes = ("_status", "_forcing", "_enabled")
         # Global entities (not per-room) that should never be cleaned up
         global_uids = {f"{DOMAIN}_vacation"}
+        zone_ids = {z.get("id") for z in store.get_settings().get("priority_zones") or []}
 
         to_remove: list[str] = []
         for entity_entry in registry.entities.values():
@@ -1661,7 +1746,17 @@ class RoomMindCoordinator(DataUpdateCoordinator):
             if uid in global_uids:
                 continue
 
-            # Extract area_id: roommind_{area_id}_{suffix}
+            # Priority zone entities: roommind_cc_zone_{zone_id}_{suffix}.
+            # Checked before room matching; an area_id could theoretically
+            # start with "zone_", but the suffix sets are disjoint so a
+            # room entity falls through to the room branch below.
+            zone_part = uid.removeprefix(f"{DOMAIN}_zone_")
+            if zone_part != uid and any(
+                zone_part.removesuffix(sfx) in zone_ids for sfx in zone_suffixes if zone_part.endswith(sfx)
+            ):
+                continue
+
+            # Extract area_id: roommind_cc_{area_id}_{suffix}
             parts = uid.removeprefix(f"{DOMAIN}_")
             # Find which room this belongs to
             matched_area = None
@@ -2064,5 +2159,217 @@ class RoomMindCoordinator(DataUpdateCoordinator):
                 "Master group '%s': action script '%s' failed",
                 group.name,
                 group.action_script,
+                exc_info=True,
+            )
+
+    # ------------------------------------------------------------------
+    # Single-zone priority room control
+    # ------------------------------------------------------------------
+
+    def _single_zone_training_label(self, area_id: str, room: dict, settings: dict) -> tuple[str | None, float] | None:
+        """EKF label override for sensor-only rooms served by a priority zone.
+
+        Returns (mode, power_fraction) derived from the zone thermostat's
+        hvac_action, (None, 0.0) to skip training this cycle, or None when the
+        override does not apply to this room (normal labeling proceeds).
+        """
+        if any(d.get("entity_id") for d in room.get("devices", [])):
+            return None  # rooms with their own devices keep normal labeling
+        # Find the zone serving this room (validation enforces at most one)
+        thermostat_eid = ""
+        for sz in settings.get("priority_zones") or []:
+            if sz.get("enabled", False) and area_id in sz.get("zone_rooms", []):
+                thermostat_eid = sz.get("thermostat_entity", "")
+                break
+        if not thermostat_eid:
+            return None
+        state = self.hass.states.get(thermostat_eid)
+        if state is None or state.state in ("unavailable", "unknown"):
+            return (None, 0.0)
+        if state.state == "off":
+            return (MODE_IDLE, 0.0)
+        action = state.attributes.get("hvac_action")
+        if action == "cooling":
+            return (MODE_COOLING, 1.0)
+        if action in ("heating", "preheating"):
+            return (MODE_HEATING, 1.0)
+        if action in ("idle", "off", "fan"):
+            return (MODE_IDLE, 0.0)
+        return (None, 0.0)  # unknown/absent hvac_action → can't label, skip
+
+    async def _async_control_priority_zones(
+        self,
+        room_states: dict[str, dict],
+        rooms_config: dict[str, dict],
+        settings: dict,
+    ) -> None:
+        """Evaluate priority room demand per zone and bias each thermostat."""
+        zones = zones_from_settings(settings)
+        zone_ids = {z.id for z in zones}
+
+        # Zones removed from config: end any active forcing session with a
+        # restore, using the last known config (marked disabled).
+        for zone_id in list(self._zone_managers):
+            if zone_id in zone_ids:
+                continue
+            manager = self._zone_managers.pop(zone_id)
+            last = self._zone_last_configs.pop(zone_id, None)
+            self.priority_zone_data.pop(zone_id, None)
+            if manager.forcing and last is not None:
+                last.enabled = False
+                try:
+                    decision = manager.evaluate(last, ZoneSnapshot())
+                    if decision.command is not None:
+                        await self._async_send_single_zone_setpoint(last.thermostat_entity, decision.command)
+                except Exception:  # noqa: BLE001
+                    _LOGGER.warning("Zone '%s': restore on removal failed", zone_id, exc_info=True)
+
+        for config in zones:
+            try:
+                manager = self._zone_managers.setdefault(config.id, SingleZoneManager())
+                self._zone_last_configs[config.id] = config
+                if not config.enabled and not manager.forcing:
+                    self.priority_zone_data[config.id] = SingleZoneDecision(
+                        status=SZ_STATUS_DISABLED,
+                        reason="zone disabled",
+                    ).as_dict()
+                    continue
+
+                snapshot = self._build_single_zone_snapshot(config, room_states, rooms_config)
+                decision = manager.evaluate(config, snapshot)
+                self.priority_zone_data[config.id] = decision.as_dict()
+
+                if decision.command is not None:
+                    await self._async_send_single_zone_setpoint(config.thermostat_entity, decision.command)
+            except Exception:  # noqa: BLE001
+                _LOGGER.warning("Priority zone '%s' control failed", config.id, exc_info=True)
+
+    def _build_single_zone_snapshot(
+        self,
+        config: SingleZoneConfig,
+        room_states: dict[str, dict],
+        rooms_config: dict[str, dict],
+    ) -> ZoneSnapshot:
+        """Assemble live state for the single-zone decision engine (all °C)."""
+        snap = ZoneSnapshot(outdoor_temp=self.outdoor_temp_effective)
+        eid = config.thermostat_entity
+
+        def _conv(value: Any) -> float | None:
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                return ha_temp_to_celsius(self.hass, float(value))
+            return None
+
+        state = self.hass.states.get(eid) if eid else None
+        if state is not None and state.state not in ("unavailable", "unknown"):
+            snap.thermostat_available = True
+            snap.thermostat_hvac_mode = state.state
+            snap.thermostat_current_temp = _conv(state.attributes.get("current_temperature"))
+            snap.thermostat_setpoint = _conv(state.attributes.get("temperature"))
+            snap.thermostat_setpoint_low = _conv(state.attributes.get("target_temp_low"))
+            snap.thermostat_setpoint_high = _conv(state.attributes.get("target_temp_high"))
+
+        # The thermostat must not simultaneously be a device of an actively
+        # controlled room — the per-room controller would fight the bias.
+        for room in rooms_config.values():
+            if not room.get("climate_control_enabled", True):
+                continue
+            if eid and eid in {d.get("entity_id") for d in room.get("devices", [])}:
+                snap.thermostat_conflict = True
+                break
+
+        # Main-area temperature: explicit sensor > main room sensor > thermostat
+        if config.main_temp_sensor:
+            raw = read_sensor_value(self.hass, config.main_temp_sensor, "single_zone", "main temperature")
+            if raw is not None:
+                snap.main_temp = ha_temp_to_celsius(self.hass, raw, entity_id=config.main_temp_sensor)
+        if snap.main_temp is None and config.main_area_id:
+            snap.main_temp = (room_states.get(config.main_area_id) or {}).get("current_temp")
+        if snap.main_temp is None:
+            snap.main_temp = snap.thermostat_current_temp
+
+        if config.main_area_id:
+            main_rs = room_states.get(config.main_area_id) or {}
+            snap.main_heat_target = main_rs.get("heat_target")
+            snap.main_cool_target = main_rs.get("cool_target")
+
+        if config.sleep_mode_entity:
+            sleep_state = self.hass.states.get(config.sleep_mode_entity)
+            snap.sleep_mode_on = sleep_state is not None and sleep_state.state == "on"
+
+        for prc in config.priority_rooms:
+            rs = room_states.get(prc.area_id)
+            if rs is None:
+                continue
+            schedule_on = True
+            if prc.schedule_entity:
+                sched = self.hass.states.get(prc.schedule_entity)
+                schedule_on = sched is not None and sched.state == SCHEDULE_STATE_ON
+            snap.rooms[prc.area_id] = PriorityRoomState(
+                area_id=prc.area_id,
+                current_temp=rs.get("current_temp"),
+                heat_target=rs.get("heat_target"),
+                cool_target=rs.get("cool_target"),
+                occupied=rs.get("q_occupancy", 0.0) > 0,
+                schedule_on=schedule_on,
+            )
+
+        # Learned response rates (°C/h) — only calibrated rooms contribute
+        rate_areas = {prc.area_id for prc in config.priority_rooms}
+        if config.main_area_id:
+            rate_areas.add(config.main_area_id)
+        for area_id in rate_areas:
+            _n_idle, n_heat, n_cool = self._model_manager.get_mode_counts(area_id)
+            model = self._model_manager.get_model(area_id)
+            if n_heat >= SZ_MIN_RATE_OBSERVATIONS and model.Q_heat > 0:
+                snap.heat_rates[area_id] = model.Q_heat
+            if n_cool >= SZ_MIN_RATE_OBSERVATIONS and model.Q_cool > 0:
+                snap.cool_rates[area_id] = model.Q_cool
+
+        return snap
+
+    async def _async_send_single_zone_setpoint(self, entity_id: str, command: SetpointCommand) -> None:
+        """Write a biased/restored setpoint to the central thermostat.
+
+        Values are converted °C → HA units at this boundary and deduped
+        against the entity's current attributes to avoid redundant calls.
+        """
+        state = self.hass.states.get(entity_id)
+        if state is None or state.state in ("unavailable", "unknown"):
+            return
+        ha_value = round(celsius_to_ha_temp(self.hass, command.value), 1)
+        attrs = state.attributes
+        data: dict[str, Any] = {"entity_id": entity_id}
+
+        if command.slot == SLOT_TEMPERATURE:
+            current = attrs.get("temperature")
+            if isinstance(current, (int, float)) and abs(float(current) - ha_value) < 0.05:
+                return
+            data["temperature"] = ha_value
+        else:
+            low = attrs.get("target_temp_low")
+            high = attrs.get("target_temp_high")
+            current = high if command.slot == SLOT_HIGH else low
+            if isinstance(current, (int, float)) and abs(float(current) - ha_value) < 0.05:
+                return
+            new_low = ha_value if command.slot == SLOT_LOW else low
+            new_high = ha_value if command.slot == SLOT_HIGH else high
+            if new_low is not None:
+                data["target_temp_low"] = new_low
+            if new_high is not None:
+                data["target_temp_high"] = new_high
+
+        try:
+            await self.hass.services.async_call(
+                "climate",
+                "set_temperature",
+                data,
+                blocking=True,
+                context=make_roommind_context(),
+            )
+            _LOGGER.debug("Single-zone: sent setpoint %s to '%s'", data, entity_id)
+        except Exception:  # noqa: BLE001
+            _LOGGER.warning(
+                "Single-zone: climate.set_temperature failed on '%s'",
+                entity_id,
                 exc_info=True,
             )

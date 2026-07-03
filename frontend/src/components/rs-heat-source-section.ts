@@ -6,7 +6,7 @@ import { inputStyles } from "../styles/input-styles";
 
 import "./shared/rs-info-icon";
 
-@customElement("rs-heat-source-section")
+@customElement("rmc-heat-source-section")
 export class RsHeatSourceSection extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: Boolean }) public enabled = false;
@@ -203,7 +203,7 @@ export class RsHeatSourceSection extends LitElement {
       <div class="threshold-cell">
         <div class="threshold-label">
           <span>${opts.label}</span>
-          <rs-info-icon .text=${opts.hint}></rs-info-icon>
+          <rmc-info-icon .text=${opts.hint}></rmc-info-icon>
         </div>
         <ha-textfield
           .value=${String(opts.value)}
@@ -242,6 +242,6 @@ export class RsHeatSourceSection extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-heat-source-section": RsHeatSourceSection;
+    "rmc-heat-source-section": RsHeatSourceSection;
   }
 }

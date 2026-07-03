@@ -6,20 +6,20 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.roommind.const import (
+from custom_components.roommind_cc.const import (
     COVER_DEFAULT_BETA_S,
     COVER_LINEAR_LOOKAHEAD_H,
     MODE_COOLING,
     MODE_HEATING,
     TargetTemps,
 )
-from custom_components.roommind.managers.cover_manager import CoverDecision
-from custom_components.roommind.managers.cover_orchestrator import (
+from custom_components.roommind_cc.managers.cover_manager import CoverDecision
+from custom_components.roommind_cc.managers.cover_orchestrator import (
     CoverOrchestrator,
     CoverResult,
 )
 
-_BUILD_SOLAR_SERIES = "custom_components.roommind.managers.cover_orchestrator.build_solar_series"
+_BUILD_SOLAR_SERIES = "custom_components.roommind_cc.managers.cover_orchestrator.build_solar_series"
 
 # ── Helpers ───────────────────────────────────────────────────────────
 
@@ -402,7 +402,7 @@ class TestAsyncProcess:
         assert call_kwargs[1]["target_temp"] == 22.0 or call_kwargs.kwargs["target_temp"] == 22.0
 
     @pytest.mark.asyncio
-    @patch("custom_components.roommind.managers.cover_orchestrator.CoverManager.async_apply", new_callable=AsyncMock)
+    @patch("custom_components.roommind_cc.managers.cover_orchestrator.CoverManager.async_apply", new_callable=AsyncMock)
     async def test_changed_decision_calls_apply(self, mock_apply):
         """When decision.changed=True, async_apply is called on covers."""
         cm = _make_cover_manager()
@@ -518,7 +518,7 @@ class TestAsyncProcess:
         )
 
         with patch(
-            "custom_components.roommind.managers.cover_orchestrator.resolve_schedule_index",
+            "custom_components.roommind_cc.managers.cover_orchestrator.resolve_schedule_index",
             return_value=0,
         ):
             result = await orch.async_process(
@@ -548,7 +548,7 @@ class TestAsyncProcess:
         room = _make_room(covers=["cover.blind1"], covers_night_close=True, covers_night_position=10)
 
         with patch(
-            "custom_components.roommind.managers.cover_orchestrator.solar_elevation",
+            "custom_components.roommind_cc.managers.cover_orchestrator.solar_elevation",
             return_value=-5.0,
         ):
             result = await orch.async_process(
@@ -581,7 +581,7 @@ class TestAsyncProcess:
         )
 
         with patch(
-            "custom_components.roommind.managers.cover_orchestrator.solar_elevation",
+            "custom_components.roommind_cc.managers.cover_orchestrator.solar_elevation",
             return_value=10.0,  # Sun is up
         ):
             result = await orch.async_process(
@@ -620,7 +620,7 @@ class TestAsyncProcess:
         )
 
         with patch(
-            "custom_components.roommind.managers.cover_orchestrator.resolve_schedule_index",
+            "custom_components.roommind_cc.managers.cover_orchestrator.resolve_schedule_index",
             return_value=0,
         ):
             result = await orch.async_process(
@@ -658,7 +658,7 @@ class TestAsyncProcess:
         )
 
         with patch(
-            "custom_components.roommind.managers.cover_orchestrator.resolve_schedule_index",
+            "custom_components.roommind_cc.managers.cover_orchestrator.resolve_schedule_index",
             return_value=1,
         ):
             result = await orch.async_process(
@@ -808,7 +808,7 @@ class TestScheduleGateMode:
         )
 
         with patch(
-            "custom_components.roommind.managers.cover_orchestrator.resolve_schedule_index",
+            "custom_components.roommind_cc.managers.cover_orchestrator.resolve_schedule_index",
             return_value=0,
         ):
             await orch.async_process(
@@ -845,7 +845,7 @@ class TestScheduleGateMode:
         )
 
         with patch(
-            "custom_components.roommind.managers.cover_orchestrator.resolve_schedule_index",
+            "custom_components.roommind_cc.managers.cover_orchestrator.resolve_schedule_index",
             return_value=0,
         ):
             await orch.async_process(
@@ -881,7 +881,7 @@ class TestScheduleGateMode:
         )
 
         with patch(
-            "custom_components.roommind.managers.cover_orchestrator.resolve_schedule_index",
+            "custom_components.roommind_cc.managers.cover_orchestrator.resolve_schedule_index",
             return_value=0,
         ):
             result = await orch.async_process(
@@ -923,11 +923,11 @@ class TestScheduleGateMode:
 
         with (
             patch(
-                "custom_components.roommind.managers.cover_orchestrator.resolve_schedule_index",
+                "custom_components.roommind_cc.managers.cover_orchestrator.resolve_schedule_index",
                 return_value=0,
             ),
             patch(
-                "custom_components.roommind.managers.cover_orchestrator.solar_elevation",
+                "custom_components.roommind_cc.managers.cover_orchestrator.solar_elevation",
                 return_value=-5.0,  # nighttime
             ),
         ):
@@ -963,7 +963,7 @@ class TestScheduleGateMode:
         )
 
         with patch(
-            "custom_components.roommind.managers.cover_orchestrator.resolve_schedule_index",
+            "custom_components.roommind_cc.managers.cover_orchestrator.resolve_schedule_index",
             return_value=0,
         ):
             await orch.async_process(
@@ -985,7 +985,7 @@ class TestScheduleGateMode:
 
 # ── Orientation ─────────────────────────────────────────────────────────
 
-_BUILD_ORIENTED = "custom_components.roommind.managers.cover_orchestrator.build_oriented_solar_series"
+_BUILD_ORIENTED = "custom_components.roommind_cc.managers.cover_orchestrator.build_oriented_solar_series"
 
 
 class TestCoverOrientation:
@@ -1199,7 +1199,7 @@ class TestNightCloseElevationOffset:
             covers_night_position=0,
         )
 
-        with patch("custom_components.roommind.managers.cover_orchestrator.solar_elevation", return_value=-3.0):
+        with patch("custom_components.roommind_cc.managers.cover_orchestrator.solar_elevation", return_value=-3.0):
             await orch.async_process(
                 area_id="lr",
                 room=room,
@@ -1228,7 +1228,7 @@ class TestNightCloseElevationOffset:
             covers_night_position=5,
         )
 
-        with patch("custom_components.roommind.managers.cover_orchestrator.solar_elevation", return_value=-7.0):
+        with patch("custom_components.roommind_cc.managers.cover_orchestrator.solar_elevation", return_value=-7.0):
             await orch.async_process(
                 area_id="lr",
                 room=room,
@@ -1259,8 +1259,8 @@ class TestNightCloseElevationOffset:
         )
 
         with (
-            patch("custom_components.roommind.managers.cover_orchestrator.solar_elevation") as mock_elev,
-            patch("custom_components.roommind.managers.cover_orchestrator.time") as mock_time,
+            patch("custom_components.roommind_cc.managers.cover_orchestrator.solar_elevation") as mock_elev,
+            patch("custom_components.roommind_cc.managers.cover_orchestrator.time") as mock_time,
         ):
             mock_time.time.return_value = 1000.0
             mock_elev.return_value = 2.0
@@ -1285,7 +1285,7 @@ class TestNightCloseElevationOffset:
 
 class TestPerCoverMinPositionCorrection:
     @pytest.mark.asyncio
-    @patch("custom_components.roommind.managers.cover_orchestrator.CoverManager.async_apply", new_callable=AsyncMock)
+    @patch("custom_components.roommind_cc.managers.cover_orchestrator.CoverManager.async_apply", new_callable=AsyncMock)
     async def test_commanded_position_corrected_with_cover_min_positions(self, mock_apply):
         """When cover_min_positions is set and decision changes, commanded position is corrected."""
         cm = _make_cover_manager()
@@ -1313,7 +1313,7 @@ class TestPerCoverMinPositionCorrection:
         assert cm.set_commanded_position.call_args[0] == ("lr", 25)
 
     @pytest.mark.asyncio
-    @patch("custom_components.roommind.managers.cover_orchestrator.CoverManager.async_apply", new_callable=AsyncMock)
+    @patch("custom_components.roommind_cc.managers.cover_orchestrator.CoverManager.async_apply", new_callable=AsyncMock)
     async def test_no_correction_without_cover_min_positions(self, mock_apply):
         """Without cover_min_positions, set_commanded_position is NOT called."""
         cm = _make_cover_manager()
@@ -1350,8 +1350,8 @@ class TestPerCoverMinPositionCorrection:
         )
 
         with (
-            patch("custom_components.roommind.managers.cover_orchestrator.solar_elevation") as mock_elev,
-            patch("custom_components.roommind.managers.cover_orchestrator.time") as mock_time,
+            patch("custom_components.roommind_cc.managers.cover_orchestrator.solar_elevation") as mock_elev,
+            patch("custom_components.roommind_cc.managers.cover_orchestrator.time") as mock_time,
         ):
             mock_time.time.return_value = 1000.0
             mock_elev.return_value = -2.0
@@ -1387,7 +1387,7 @@ class TestPerCoverMinPositionCorrection:
             covers_night_position=0,
         )
 
-        with patch("custom_components.roommind.managers.cover_orchestrator.solar_elevation", return_value=3.0):
+        with patch("custom_components.roommind_cc.managers.cover_orchestrator.solar_elevation", return_value=3.0):
             await orch.async_process(
                 area_id="lr",
                 room=room,
@@ -1421,9 +1421,9 @@ class TestOrientationGate:
         )
 
         with (
-            patch("custom_components.roommind.managers.cover_orchestrator.solar_azimuth", return_value=250.0),
-            patch("custom_components.roommind.managers.cover_orchestrator.solar_elevation", return_value=20.0),
-            patch("custom_components.roommind.managers.cover_orchestrator.surface_irradiance_factor", return_value=0.0),
+            patch("custom_components.roommind_cc.managers.cover_orchestrator.solar_azimuth", return_value=250.0),
+            patch("custom_components.roommind_cc.managers.cover_orchestrator.solar_elevation", return_value=20.0),
+            patch("custom_components.roommind_cc.managers.cover_orchestrator.surface_irradiance_factor", return_value=0.0),
             patch.object(CoverOrchestrator, "_estimate_solar_peak_temp", return_value=26.0),
         ):
             await orch.async_process(
@@ -1453,9 +1453,9 @@ class TestOrientationGate:
         )
 
         with (
-            patch("custom_components.roommind.managers.cover_orchestrator.solar_azimuth", return_value=180.0),
-            patch("custom_components.roommind.managers.cover_orchestrator.solar_elevation", return_value=45.0),
-            patch("custom_components.roommind.managers.cover_orchestrator.surface_irradiance_factor", return_value=0.7),
+            patch("custom_components.roommind_cc.managers.cover_orchestrator.solar_azimuth", return_value=180.0),
+            patch("custom_components.roommind_cc.managers.cover_orchestrator.solar_elevation", return_value=45.0),
+            patch("custom_components.roommind_cc.managers.cover_orchestrator.surface_irradiance_factor", return_value=0.7),
             patch.object(CoverOrchestrator, "_estimate_solar_peak_temp", return_value=26.0),
         ):
             await orch.async_process(

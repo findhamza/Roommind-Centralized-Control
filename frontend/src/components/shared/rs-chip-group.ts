@@ -8,7 +8,7 @@ export interface ChipItem {
   active?: boolean;
 }
 
-@customElement("rs-chip-group")
+@customElement("rmc-chip-group")
 export class RsChipGroup extends LitElement {
   @property({ type: Array }) public chips: ChipItem[] = [];
 
@@ -83,6 +83,6 @@ export class RsChipGroup extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-chip-group": RsChipGroup;
+    "rmc-chip-group": RsChipGroup;
   }
 }

@@ -33,9 +33,15 @@ async def async_setup_entry(
     # Store the callback on the coordinator so dynamic entity creation works
     coordinator.async_add_entities = async_add_entities
 
+    # Per-zone status sensors for configured priority zones
+    entities: list[SensorEntity] = []
+    for zone in store.get_settings().get("priority_zones") or []:
+        if zone.get("id"):
+            entities.append(RoomMindZoneStatusSensor(coordinator, zone["id"], zone.get("name", "")))
+            coordinator._zone_entity_ids.add(zone["id"])
+
     # Create entities for rooms that already exist in the store
     rooms = store.get_rooms()
-    entities: list[SensorEntity] = []
     for area_id in rooms:
         entities.extend(_create_room_entities(coordinator, area_id))
         coordinator._entity_areas.add(area_id)
@@ -99,3 +105,37 @@ class RoomMindModeSensor(_RoomMindBaseSensor):
             val = room.get("mode", "idle")
             return str(val) if val is not None else "idle"
         return "idle"
+
+
+class RoomMindZoneStatusSensor(CoordinatorEntity, SensorEntity):
+    """Per-zone sensor exposing a priority zone's decision state.
+
+    State is the decision status (disabled / idle / forcing_cooling /
+    forcing_heating); attributes carry the full transparency payload
+    (active room, error, bias, reason, lockouts, learned response rate).
+    Temperature attributes are °C — HA dashboards read the reason string
+    and status for display; automations can convert as needed.
+    """
+
+    _attr_has_entity_name = True
+
+    def __init__(self, coordinator: RoomMindCoordinator, zone_id: str, zone_name: str = "") -> None:
+        super().__init__(coordinator)
+        self._zone_id = zone_id
+        self._attr_unique_id = f"{DOMAIN}_zone_{zone_id}_status"
+        self._attr_name = f"{zone_name or zone_id} Zone Status"
+        self._attr_icon = "mdi:home-thermometer"
+        self.entity_id = f"sensor.{DOMAIN}_zone_{zone_id}_status"
+
+    @property
+    def native_value(self) -> str:
+        """Return the zone's current decision status."""
+        data = self.coordinator.priority_zone_data.get(self._zone_id) or {}
+        return str(data.get("status", "disabled"))
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        """Expose the full decision payload for dashboards and automations."""
+        data = dict(self.coordinator.priority_zone_data.get(self._zone_id) or {})
+        data.pop("status", None)
+        return data

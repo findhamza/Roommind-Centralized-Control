@@ -28,7 +28,7 @@ interface AreaInfo {
   tempSensorCount: number;
 }
 
-@customElement("roommind-panel")
+@customElement("roommind-cc-panel")
 export class RoomMindPanel extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: Boolean, reflect: true }) public narrow = false;
@@ -442,13 +442,13 @@ export class RoomMindPanel extends LitElement {
       case "areas":
         return this._renderAreas();
       case "analytics":
-        return html`<rs-analytics
+        return html`<rmc-analytics
           .hass=${this.hass}
           .rooms=${this._rooms}
           .initialRoom=${this._analyticsRoom}
           .controlMode=${this._controlMode}
           @room-selected=${this._onAnalyticsRoomSelected}
-        ></rs-analytics>`;
+        ></rmc-analytics>`;
       case "settings":
         return this._renderSettings();
       default:
@@ -466,7 +466,7 @@ export class RoomMindPanel extends LitElement {
       if (area) {
         const config = this._rooms[this._selectedAreaId] ?? null;
         return html`
-          <rs-room-detail
+          <rmc-room-detail
             .area=${area}
             .config=${config}
             .hass=${this.hass}
@@ -476,7 +476,7 @@ export class RoomMindPanel extends LitElement {
             .valveProtectionEnabled=${this._valveProtectionEnabled}
             @back-clicked=${this._onBackFromDetail}
             @room-updated=${this._onRoomUpdated}
-          ></rs-room-detail>
+          ></rmc-room-detail>
         `;
       }
       this._selectedAreaId = null;
@@ -618,7 +618,7 @@ export class RoomMindPanel extends LitElement {
           <div class="area-grid">
             ${group.items.map(
               (info, idx) => html`
-                <rs-area-card
+                <rmc-area-card
                   .area=${info.area}
                   .config=${info.config}
                   .climateEntityCount=${info.climateEntityCount}
@@ -633,7 +633,7 @@ export class RoomMindPanel extends LitElement {
                   @hide-room=${this._onHideRoom}
                   @move-room-up=${this._onMoveRoomUp}
                   @move-room-down=${this._onMoveRoomDown}
-                ></rs-area-card>
+                ></rmc-area-card>
               `,
             )}
           </div>
@@ -643,7 +643,7 @@ export class RoomMindPanel extends LitElement {
   }
 
   private _renderSettings() {
-    return html`<rs-settings .hass=${this.hass} .rooms=${this._rooms}></rs-settings>`;
+    return html`<rmc-settings .hass=${this.hass} .rooms=${this._rooms}></rmc-settings>`;
   }
 
   private _computeAreaInfos(): AreaInfo[] {
@@ -757,7 +757,7 @@ export class RoomMindPanel extends LitElement {
         schedule_off_action: "eco" | "off";
         valve_protection_enabled: boolean;
       }>({
-        type: "roommind/rooms/list",
+        type: "roommind_cc/rooms/list",
       });
       this._rooms = result.rooms;
       this._vacationActive = result.vacation_active ?? false;
@@ -797,7 +797,7 @@ export class RoomMindPanel extends LitElement {
 
     try {
       await this.hass.callWS({
-        type: "roommind/rooms/delete",
+        type: "roommind_cc/rooms/delete",
         area_id: this._selectedAreaId,
       });
       this._selectedAreaId = null;
@@ -828,7 +828,7 @@ export class RoomMindPanel extends LitElement {
     const newHidden = [...new Set([...this._hiddenRooms, e.detail.areaId])];
     this._hiddenRooms = newHidden;
     try {
-      await this.hass.callWS({ type: "roommind/settings/save", hidden_rooms: newHidden });
+      await this.hass.callWS({ type: "roommind_cc/settings/save", hidden_rooms: newHidden });
     } catch (err) {
       // eslint-disable-next-line no-console
       console.debug("[RoomMind] hideRoom:", err);
@@ -840,7 +840,7 @@ export class RoomMindPanel extends LitElement {
     this._hiddenRooms = newHidden;
     if (newHidden.length === 0) this._showHiddenRooms = false;
     try {
-      await this.hass.callWS({ type: "roommind/settings/save", hidden_rooms: newHidden });
+      await this.hass.callWS({ type: "roommind_cc/settings/save", hidden_rooms: newHidden });
     } catch (err) {
       // eslint-disable-next-line no-console
       console.debug("[RoomMind] unhideRoom:", err);
@@ -911,7 +911,7 @@ export class RoomMindPanel extends LitElement {
     this._roomOrder = order;
     this._areaInfosCache = this._computeAreaInfos();
     try {
-      await this.hass.callWS({ type: "roommind/settings/save", room_order: order });
+      await this.hass.callWS({ type: "roommind_cc/settings/save", room_order: order });
     } catch (err) {
       // eslint-disable-next-line no-console
       console.debug("[RoomMind] saveRoomOrder:", err);
@@ -1012,6 +1012,6 @@ export class RoomMindPanel extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "roommind-panel": RoomMindPanel;
+    "roommind-cc-panel": RoomMindPanel;
   }
 }

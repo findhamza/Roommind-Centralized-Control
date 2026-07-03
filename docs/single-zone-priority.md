@@ -1,0 +1,156 @@
+# Priority Zones (single-thermostat supervisory control)
+
+For homes where whole zones hang on **one central thermostat with remote
+sensors only** — a single-stage ducted furnace/AC per floor, no dampers, no
+smart vents, no TRVs. The only real actuator in each zone is that zone's
+thermostat setpoint.
+
+RoomMind acts as a **supervisory controller** per zone: when a *priority
+room* (measured by a remote temperature sensor) is uncomfortable, it
+temporarily biases that zone's thermostat setpoint to force HVAC runtime,
+even if the thermostat's own area is already satisfied — then restores the
+setpoint once the priority room approaches its target.
+
+Multiple zones are fully independent: a two-system home (downstairs +
+upstairs, two compressors) gets two zones, each with its own thermostat,
+priority rooms, forcing sessions, anti-short-cycle timers, and entities.
+
+```
+Bedroom target 74°F, bedroom at 77°F, thermostat area at 74°F
+→ RoomMind lowers that zone's thermostat to ~71–72°F until the bedroom approaches 74°F
+→ setpoint restored, cooldown starts — the other zone is unaffected
+```
+
+All of RoomMind's comfort machinery keeps working for priority rooms:
+schedules, manual overrides, presence/eco, occupancy — the priority logic acts
+on the room's *resolved* heat/cool targets.
+
+## How a forcing session works
+
+1. **Start** — a gated priority room's error exceeds the *start threshold*
+   (e.g. bedroom is 1.5°F above its cooling target). The thermostat's current
+   setpoint is captured as *nominal* and a biased setpoint is written.
+2. **Bias** — with `dynamic_bias` on (default), the bias is
+   `error × (main response rate ÷ priority room response rate) + margin`,
+   using the rates learned by the thermal model (EKF). A room that cools
+   slower than the main area automatically gets a deeper bias. Falls back to
+   1:1 until both rooms are calibrated; with `dynamic_bias` off, the fixed
+   `cool_bias`/`heat_bias` is used.
+3. **Clamps** — the setpoint never exceeds `max_cool_offset`/`max_heat_offset`
+   from nominal, and never crosses `main_min_temp`/`main_max_temp` (so the
+   main area cannot be overcooled/overheated past your bounds). If the clamps
+   leave no authority to trigger runtime, forcing does not start and the
+   status sensor explains why.
+4. **Stop** — when the priority room error falls below the *stop threshold*
+   (separate from start → hysteresis, no oscillation), the nominal setpoint is
+   restored (`restore_behavior: restore`) or left alone (`leave`).
+5. **Protection** — `min_run_minutes` holds every comfort-driven stop
+   (compressor protection is absolute; overshoot is already bounded by the
+   setpoint clamps). `min_off_minutes` blocks a new session after restore.
+   Setpoints only *deepen* during a session — they never bounce. Timers are
+   per zone; two compressors never share a lockout.
+6. **Arbitration** — if the main area drifts more than 1.5°C past its own
+   target, forcing stops early — unless `priority_wins: true`, in which case
+   only the hard `main_min_temp`/`main_max_temp` bounds apply.
+7. **Manual override** — if you change a thermostat setpoint by hand during
+   a session, that zone stands down immediately without restoring.
+
+A zone never changes its thermostat's hvac_mode: cooling is only forced when
+the thermostat is in `cool` (or `heat_cool`/`auto`), heating only in `heat`
+(or `heat_cool`/`auto`). Global outdoor gates
+(`outdoor_cooling_min` / `outdoor_heating_max`) are respected.
+
+## Runtime learning with one actuator per zone
+
+Rooms listed in a zone's `zone_rooms` that have **no climate devices of their
+own** get their thermal-model training label from that zone's thermostat
+`hvac_action` instead of (nonexistent) room devices. Each room's EKF learns
+how fast its zone's system heats/cools *that room* — which is exactly what
+the dynamic bias uses. List every room a zone serves (including the main area
+room, if you model it); a room can belong to only one zone.
+
+## Configuration
+
+Open **RoomMind → Settings → Priority Zones**. Add a zone per thermostat;
+each zone card lets you pick the thermostat, toggle zone rooms, add priority
+rooms with activation conditions (always / occupied / schedule / sleep), and
+tune thresholds, biases, offsets, main-area bounds, and compressor protection
+(minimum runtime / minimum off-time). Temperatures are shown in your HA unit
+system; a live status card per zone shows the current decision (state, active
+room, bias, lockouts) while the zone is enabled.
+
+Under the hood this edits the `priority_zones` settings list, which can also
+be saved directly via the `roommind_cc/settings/save` WebSocket command. All
+temperatures are **°C** on the wire, like the rest of RoomMind. A legacy
+`single_zone` blob from earlier builds is migrated automatically to a
+one-entry list with id `zone_1`.
+
+```jsonc
+{
+  "type": "roommind_cc/settings/save",
+  "priority_zones": [
+    {
+      "id": "downstairs",                 // stable slug, used in entity ids
+      "name": "Downstairs",
+      "enabled": true,
+      "thermostat_entity": "climate.downstairs",
+      "zone_rooms": ["bedroom_x1", "living_room_x2"],
+      "main_area_id": "living_room_x2",   // RoomMind room at the thermostat (optional)
+      "main_temp_sensor": "",             // else thermostat's own reading is used
+      "priority_rooms": [
+        { "area_id": "bedroom_x1", "condition": "sleep" }
+        // condition: always | occupied | schedule | sleep
+      ],
+      "sleep_mode_entity": "input_boolean.sleep_mode",
+      "cool_start_threshold": 0.8,        // °C above cool target → start forcing (~1.5°F)
+      "cool_stop_threshold": 0.2,         // °C above cool target → stop (~0.35°F)
+      "heat_start_threshold": 0.8,
+      "heat_stop_threshold": 0.2,
+      "cool_bias": 1.5,                   // static bias when dynamic_bias is false
+      "heat_bias": 1.5,
+      "max_cool_offset": 2.5,             // °C max setpoint offset from nominal
+      "max_heat_offset": 2.5,
+      "main_min_temp": 20.0,              // °C hard floor for the main area (~68°F)
+      "main_max_temp": 26.0,              // °C hard ceiling (~79°F)
+      "min_run_minutes": 10,
+      "min_off_minutes": 10,
+      "dynamic_bias": true,
+      "priority_wins": false,
+      "restore_behavior": "restore"       // restore | leave
+    },
+    {
+      "id": "upstairs",
+      "name": "Upstairs",
+      "enabled": true,
+      "thermostat_entity": "climate.upstairs",
+      "zone_rooms": ["loft_x3", "kids_room_x4"],
+      "priority_rooms": [{ "area_id": "kids_room_x4", "condition": "occupied" }]
+    }
+  ]
+}
+```
+
+> **Important:** a zone's thermostat must **not** be assigned as a device
+> in any RoomMind room with climate control enabled — the per-room controller
+> would fight the bias. RoomMind detects this and disables the zone with an
+> explanatory reason. Cross-zone rules are validated on save: each thermostat
+> serves one zone, and each room belongs to (and is a priority room of) at
+> most one zone.
+
+## Entities (per zone)
+
+| Entity | Description |
+|--------|-------------|
+| `sensor.roommind_cc_zone_{id}_status` | `disabled` / `idle` / `forcing_cooling` / `forcing_heating`, with the full decision as attributes: `active_room`, `room_error`, `bias`, `setpoint`, `nominal_setpoint`, `reason`, `min_run_lockout`, `min_off_lockout`, `lockout_remaining_s`, `main_protection_active`, `learned_ratio`, `response_rate` (temperature attributes in °C) |
+| `binary_sensor.roommind_cc_zone_{id}_forcing` | On while a forcing session is active (`direction`, `active_room`, `reason` attributes) |
+| `switch.roommind_cc_zone_{id}_enabled` | Quick per-zone enable/disable; turning it off mid-session restores the setpoint on the next cycle |
+
+Entities are created and removed automatically when zones are added or
+deleted. The current decisions also appear in `roommind_cc/rooms/list`
+(`priority_zone_state`, keyed by zone id) and in the integration diagnostics.
+
+## Multi-room users are unaffected
+
+The feature is inert unless a zone is configured and enabled. Per-room device
+control, MPC, weighting, covers, compressor groups and everything else behave
+exactly as before.

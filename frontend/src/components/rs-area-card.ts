@@ -7,7 +7,7 @@ import { localize } from "../utils/localize";
 import { mdiEyeOff } from "../utils/icons";
 import { formatTemp, tempUnit, toDisplayDelta } from "../utils/temperature";
 
-@customElement("rs-area-card")
+@customElement("rmc-area-card")
 export class RsAreaCard extends LitElement {
   @property({ attribute: false }) public area!: HassArea;
   @property({ attribute: false }) public config: RoomConfig | null = null;
@@ -662,6 +662,6 @@ export class RsAreaCard extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-area-card": RsAreaCard;
+    "rmc-area-card": RsAreaCard;
   }
 }

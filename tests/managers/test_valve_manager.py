@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.roommind.managers.valve_manager import ValveManager
+from custom_components.roommind_cc.managers.valve_manager import ValveManager
 
 
 @pytest.fixture
@@ -64,7 +64,7 @@ async def test_finish_cycles_exception_on_turn_off(vm):
     vm._cycling["climate.trv1"] = now - 100  # well past cycle duration
 
     with patch(
-        "custom_components.roommind.managers.valve_manager.async_turn_off_climate",
+        "custom_components.roommind_cc.managers.valve_manager.async_turn_off_climate",
         new_callable=AsyncMock,
         side_effect=Exception("service unavailable"),
     ):
@@ -84,7 +84,7 @@ async def test_check_and_cycle_exception_on_disable_close(vm):
     vm._cycling["climate.trv1"] = time.time()
 
     with patch(
-        "custom_components.roommind.managers.valve_manager.async_turn_off_climate",
+        "custom_components.roommind_cc.managers.valve_manager.async_turn_off_climate",
         new_callable=AsyncMock,
         side_effect=Exception("turn off failed"),
     ):
@@ -119,7 +119,7 @@ async def test_check_and_cycle_exception_starting_cycle(vm):
     vm.hass.services.async_call = AsyncMock(side_effect=Exception("call failed"))
 
     with patch(
-        "custom_components.roommind.managers.valve_manager.celsius_to_ha_temp",
+        "custom_components.roommind_cc.managers.valve_manager.celsius_to_ha_temp",
         return_value=30.0,
     ):
         await vm.async_check_and_cycle(rooms, settings)
@@ -155,7 +155,7 @@ async def test_cycle_dual_setpoint_trv(vm):
     vm.hass.services.async_call = AsyncMock()
 
     with patch(
-        "custom_components.roommind.managers.valve_manager.celsius_to_ha_temp",
+        "custom_components.roommind_cc.managers.valve_manager.celsius_to_ha_temp",
         return_value=30.0,
     ):
         await vm.async_check_and_cycle(rooms, settings)
@@ -194,7 +194,7 @@ async def test_cycle_single_setpoint_trv_unchanged(vm):
     vm.hass.services.async_call = AsyncMock()
 
     with patch(
-        "custom_components.roommind.managers.valve_manager.celsius_to_ha_temp",
+        "custom_components.roommind_cc.managers.valve_manager.celsius_to_ha_temp",
         return_value=30.0,
     ):
         await vm.async_check_and_cycle(rooms, settings)
@@ -234,7 +234,7 @@ async def test_excluded_entity_not_cycled(vm):
     vm.hass.services.async_call = AsyncMock()
 
     with patch(
-        "custom_components.roommind.managers.valve_manager.celsius_to_ha_temp",
+        "custom_components.roommind_cc.managers.valve_manager.celsius_to_ha_temp",
         return_value=30.0,
     ):
         await vm.async_check_and_cycle(rooms, settings)
@@ -267,7 +267,7 @@ async def test_empty_exclude_cycles_all(vm):
     vm.hass.services.async_call = AsyncMock()
 
     with patch(
-        "custom_components.roommind.managers.valve_manager.celsius_to_ha_temp",
+        "custom_components.roommind_cc.managers.valve_manager.celsius_to_ha_temp",
         return_value=30.0,
     ):
         await vm.async_check_and_cycle(rooms, settings)
@@ -297,7 +297,7 @@ async def test_exclude_nonexistent_entity_harmless(vm):
     vm.hass.services.async_call = AsyncMock()
 
     with patch(
-        "custom_components.roommind.managers.valve_manager.celsius_to_ha_temp",
+        "custom_components.roommind_cc.managers.valve_manager.celsius_to_ha_temp",
         return_value=30.0,
     ):
         await vm.async_check_and_cycle(rooms, settings)
@@ -337,7 +337,7 @@ async def test_exclude_in_one_room_prevents_cycling_from_other(vm):
     vm.hass.services.async_call = AsyncMock()
 
     with patch(
-        "custom_components.roommind.managers.valve_manager.celsius_to_ha_temp",
+        "custom_components.roommind_cc.managers.valve_manager.celsius_to_ha_temp",
         return_value=30.0,
     ):
         await vm.async_check_and_cycle(rooms, settings)
@@ -357,7 +357,7 @@ async def test_finish_cycles_happy_path(vm):
     vm._cycling["climate.trv1"] = now - 100  # past cycle duration
 
     with patch(
-        "custom_components.roommind.managers.valve_manager.async_turn_off_climate",
+        "custom_components.roommind_cc.managers.valve_manager.async_turn_off_climate",
         new_callable=AsyncMock,
     ) as mock_turn_off:
         await vm.async_finish_cycles()
@@ -441,7 +441,7 @@ async def test_stale_entry_cleanup(vm):
 
 class TestPublicAPI:
     def test_should_run_cycle_check_throttle(self, vm):
-        from custom_components.roommind.const import VALVE_PROTECTION_CHECK_CYCLES
+        from custom_components.roommind_cc.const import VALVE_PROTECTION_CHECK_CYCLES
 
         for _i in range(VALVE_PROTECTION_CHECK_CYCLES - 1):
             assert vm.should_run_cycle_check() is False

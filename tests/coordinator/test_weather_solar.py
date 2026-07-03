@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.roommind.managers.weather_manager import WeatherManager
+from custom_components.roommind_cc.managers.weather_manager import WeatherManager
 
 from .conftest import (
     SAMPLE_ROOM,
@@ -132,7 +132,7 @@ class TestCoverageGaps:
         """Cloud coverage is read from weather entity attributes."""
         store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
         store.get_settings.return_value = {"weather_entity": "weather.home"}
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         weather_state = MagicMock()
         weather_state.attributes = {"cloud_coverage": 75}

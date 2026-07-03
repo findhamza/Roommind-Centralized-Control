@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.roommind.utils.notification_utils import (
+from custom_components.roommind_cc.utils.notification_utils import (
     NotificationThrottler,
     async_send_mold_notification,
     dismiss_mold_notification,
@@ -83,7 +83,7 @@ async def test_send_notification_with_targets():
         assert call[0][0] == "notify"
         assert call[0][1] == "send_message"
         assert call[0][2]["message"] == "Test mold alert"
-        assert call[0][2]["data"]["tag"] == "roommind_mold_living_room_risk"
+        assert call[0][2]["data"]["tag"] == "roommind_cc_mold_living_room_risk"
 
 
 @pytest.mark.asyncio
@@ -100,7 +100,7 @@ async def test_send_notification_home_only_skips_away():
         {"entity_id": "notify.mobile_app_kevin", "person_entity": "person.kevin", "notify_when": "home_only"},
     ]
 
-    with patch("custom_components.roommind.utils.notification_utils.async_create") as mock_persistent:
+    with patch("custom_components.roommind_cc.utils.notification_utils.async_create") as mock_persistent:
         await async_send_mold_notification(
             hass,
             "living_room",
@@ -147,7 +147,7 @@ async def test_send_notification_no_targets_persistent():
     """Empty targets list → fallback to persistent notification."""
     hass = MagicMock()
 
-    with patch("custom_components.roommind.utils.notification_utils.async_create") as mock_create:
+    with patch("custom_components.roommind_cc.utils.notification_utils.async_create") as mock_create:
         await async_send_mold_notification(
             hass,
             "living_room",
@@ -161,7 +161,7 @@ async def test_send_notification_no_targets_persistent():
         hass,
         "Test mold alert",
         title="RoomMind: Test",
-        notification_id="roommind_mold_living_room_risk",
+        notification_id="roommind_cc_mold_living_room_risk",
     )
 
 
@@ -213,7 +213,7 @@ async def test_send_notification_custom_tag_suffix():
     )
 
     call_data = hass.services.async_call.call_args[0][2]["data"]
-    assert call_data["tag"] == "roommind_mold_bedroom_prevention"
+    assert call_data["tag"] == "roommind_cc_mold_bedroom_prevention"
 
 
 # --- dismiss_mold_notification ---
@@ -223,20 +223,20 @@ def test_dismiss_notification():
     """Should dismiss persistent notification with correct ID."""
     hass = MagicMock()
 
-    with patch("custom_components.roommind.utils.notification_utils.async_dismiss") as mock_dismiss:
+    with patch("custom_components.roommind_cc.utils.notification_utils.async_dismiss") as mock_dismiss:
         dismiss_mold_notification(hass, "living_room", "risk")
 
-    mock_dismiss.assert_called_once_with(hass, "roommind_mold_living_room_risk")
+    mock_dismiss.assert_called_once_with(hass, "roommind_cc_mold_living_room_risk")
 
 
 def test_dismiss_notification_prevention_suffix():
     """Should use correct suffix for prevention notifications."""
     hass = MagicMock()
 
-    with patch("custom_components.roommind.utils.notification_utils.async_dismiss") as mock_dismiss:
+    with patch("custom_components.roommind_cc.utils.notification_utils.async_dismiss") as mock_dismiss:
         dismiss_mold_notification(hass, "bedroom", "prevention")
 
-    mock_dismiss.assert_called_once_with(hass, "roommind_mold_bedroom_prevention")
+    mock_dismiss.assert_called_once_with(hass, "roommind_cc_mold_bedroom_prevention")
 
 
 @pytest.mark.asyncio
@@ -247,7 +247,7 @@ async def test_send_notification_skips_target_with_empty_entity_id():
 
     targets = [{"entity_id": "", "person_entity": "", "notify_when": "always"}]
 
-    with patch("custom_components.roommind.utils.notification_utils.async_create") as mock_create:
+    with patch("custom_components.roommind_cc.utils.notification_utils.async_create") as mock_create:
         await async_send_mold_notification(
             hass,
             "living_room",
@@ -269,7 +269,7 @@ async def test_send_notification_service_exception_triggers_fallback():
 
     targets = [{"entity_id": "notify.test", "person_entity": "", "notify_when": "always"}]
 
-    with patch("custom_components.roommind.utils.notification_utils.async_create") as mock_create:
+    with patch("custom_components.roommind_cc.utils.notification_utils.async_create") as mock_create:
         await async_send_mold_notification(
             hass,
             "living_room",

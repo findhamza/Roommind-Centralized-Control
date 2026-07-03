@@ -29,7 +29,7 @@ class TestRoomMindCoordinator:
             "override_type": "boost",
         }
         store = _make_store_mock({"living_room_abc12345": room_with_override})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(side_effect=make_mock_states_get(schedule_state="off"))
         hass.services.async_call = AsyncMock()
@@ -54,7 +54,7 @@ class TestRoomMindCoordinator:
         }
         store = _make_store_mock({"living_room_abc12345": room_with_expired})
         store.async_update_room = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.async_create_task = MagicMock(side_effect=lambda coro: coro.close())
 
         hass.states.get = MagicMock(side_effect=make_mock_states_get())
@@ -78,7 +78,7 @@ class TestRoomMindCoordinator:
             "override_type": "custom",
         }
         store = _make_store_mock({"living_room_abc12345": room_with_override})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(side_effect=make_mock_states_get(schedule_state="off"))
         hass.services.async_call = AsyncMock()
@@ -103,7 +103,7 @@ class TestVacationMode:
             "vacation_temp": 15.0,
             "vacation_until": time.time() + 86400,
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(side_effect=make_mock_states_get())
         hass.services.async_call = AsyncMock()
@@ -129,7 +129,7 @@ class TestVacationMode:
             "vacation_temp": 15.0,
             "vacation_until": time.time() + 86400,
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(side_effect=make_mock_states_get())
         hass.services.async_call = AsyncMock()
@@ -149,7 +149,7 @@ class TestVacationMode:
             "vacation_until": time.time() - 10,
         }
         store.async_save_settings = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.async_create_task = MagicMock(side_effect=lambda coro: coro.close())
 
         hass.states.get = MagicMock(side_effect=make_mock_states_get())
@@ -170,7 +170,7 @@ class TestVacationMode:
             "vacation_temp": 15.0,
             "vacation_until": time.time() + 86400,
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(side_effect=make_mock_states_get())
         hass.services.async_call = AsyncMock()

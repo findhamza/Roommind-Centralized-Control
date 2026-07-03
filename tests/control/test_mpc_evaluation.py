@@ -7,15 +7,15 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.roommind.const import TargetTemps
-from custom_components.roommind.control.mpc_controller import (
+from custom_components.roommind_cc.const import TargetTemps
+from custom_components.roommind_cc.control.mpc_controller import (
     MODE_COOLING,
     MODE_HEATING,
     MODE_IDLE,
     MPCController,
 )
-from custom_components.roommind.control.mpc_optimizer import MPCPlan
-from custom_components.roommind.control.thermal_model import RCModel, RoomModelManager
+from custom_components.roommind_cc.control.mpc_optimizer import MPCPlan
+from custom_components.roommind_cc.control.thermal_model import RCModel, RoomModelManager
 
 from .conftest import build_hass, make_room
 
@@ -90,7 +90,7 @@ class TestBuildOutdoorSeries:
 
     def test_fallback_when_outdoor_temp_none_no_forecast(self):
         """Without forecast and outdoor_temp=None, uses DEFAULT_OUTDOOR_TEMP_FALLBACK."""
-        from custom_components.roommind.control.mpc_controller import DEFAULT_OUTDOOR_TEMP_FALLBACK
+        from custom_components.roommind_cc.control.mpc_controller import DEFAULT_OUTDOOR_TEMP_FALLBACK
 
         hass = build_hass()
         room = make_room()
@@ -201,7 +201,7 @@ class TestBuildOutdoorSeries:
 
     def test_forecast_missing_temp_key_and_outdoor_none_uses_fallback(self):
         """Missing temperature + outdoor_temp=None falls back to DEFAULT for all blocks."""
-        from custom_components.roommind.control.mpc_controller import DEFAULT_OUTDOOR_TEMP_FALLBACK
+        from custom_components.roommind_cc.control.mpc_controller import DEFAULT_OUTDOOR_TEMP_FALLBACK
 
         hass = build_hass()
         room = make_room()
@@ -356,7 +356,7 @@ def test_evaluate_mpc_safety_guard_heating_above_target(monkeypatch):
         power_fractions=[0.8] * 6,
     )
     monkeypatch.setattr(
-        "custom_components.roommind.control.mpc_controller.MPCOptimizer.optimize",
+        "custom_components.roommind_cc.control.mpc_controller.MPCOptimizer.optimize",
         lambda *a, **kw: fake_plan,
     )
     # current_temp=22 >= target=21 → safety guard should override to idle
@@ -385,7 +385,7 @@ def test_evaluate_mpc_safety_guard_cooling_below_target(monkeypatch):
         power_fractions=[0.8] * 6,
     )
     monkeypatch.setattr(
-        "custom_components.roommind.control.mpc_controller.MPCOptimizer.optimize",
+        "custom_components.roommind_cc.control.mpc_controller.MPCOptimizer.optimize",
         lambda *a, **kw: fake_plan,
     )
     # current_temp=22 <= target=23 → safety guard should override to idle
@@ -416,7 +416,7 @@ def test_evaluate_mpc_safety_guard_respects_min_run_heating(monkeypatch):
         power_fractions=[0.8] * 6,
     )
     monkeypatch.setattr(
-        "custom_components.roommind.control.mpc_controller.MPCOptimizer.optimize",
+        "custom_components.roommind_cc.control.mpc_controller.MPCOptimizer.optimize",
         lambda *a, **kw: fake_plan,
     )
     # current_temp=22 >= target=21 but we're in min-run window → must keep heating
@@ -446,7 +446,7 @@ def test_evaluate_mpc_safety_guard_fires_after_min_run_heating(monkeypatch):
         power_fractions=[0.8] * 6,
     )
     monkeypatch.setattr(
-        "custom_components.roommind.control.mpc_controller.MPCOptimizer.optimize",
+        "custom_components.roommind_cc.control.mpc_controller.MPCOptimizer.optimize",
         lambda *a, **kw: fake_plan,
     )
     mode, pf = ctrl._evaluate_mpc(22.0, TargetTemps(heat=21.0, cool=24.0))
@@ -476,7 +476,7 @@ def test_evaluate_mpc_safety_guard_fires_after_default_min_run_heating(monkeypat
         power_fractions=[0.8] * 6,
     )
     monkeypatch.setattr(
-        "custom_components.roommind.control.mpc_controller.MPCOptimizer.optimize",
+        "custom_components.roommind_cc.control.mpc_controller.MPCOptimizer.optimize",
         lambda *a, **kw: fake_plan,
     )
     mode, pf = ctrl._evaluate_mpc(22.0, TargetTemps(heat=21.0, cool=24.0))
@@ -523,7 +523,7 @@ def test_predict_idle_drift_returns_model_prediction():
 
 def test_predict_idle_drift_uses_fallback_outdoor_temp():
     """When outdoor_temp is None, uses DEFAULT_OUTDOOR_TEMP_FALLBACK."""
-    from custom_components.roommind.control.mpc_controller import (
+    from custom_components.roommind_cc.control.mpc_controller import (
         DEFAULT_OUTDOOR_TEMP_FALLBACK,
     )
 
@@ -570,7 +570,7 @@ def test_safety_guard_allows_heating_when_prediction_dips(monkeypatch):
         power_fractions=[0.8] * 24,
     )
     monkeypatch.setattr(
-        "custom_components.roommind.control.mpc_controller.MPCOptimizer.optimize",
+        "custom_components.roommind_cc.control.mpc_controller.MPCOptimizer.optimize",
         lambda *a, **kw: fake_plan,
     )
 
@@ -602,7 +602,7 @@ def test_safety_guard_suppresses_when_prediction_stays_warm(monkeypatch):
         power_fractions=[0.8] * 24,
     )
     monkeypatch.setattr(
-        "custom_components.roommind.control.mpc_controller.MPCOptimizer.optimize",
+        "custom_components.roommind_cc.control.mpc_controller.MPCOptimizer.optimize",
         lambda *a, **kw: fake_plan,
     )
 
@@ -639,7 +639,7 @@ def test_safety_guard_adaptive_horizon_underfloor(monkeypatch):
         power_fractions=[0.8] * 24,
     )
     monkeypatch.setattr(
-        "custom_components.roommind.control.mpc_controller.MPCOptimizer.optimize",
+        "custom_components.roommind_cc.control.mpc_controller.MPCOptimizer.optimize",
         lambda *a, **kw: fake_plan,
     )
 
@@ -670,7 +670,7 @@ def test_safety_guard_allows_cooling_when_prediction_rises(monkeypatch):
         power_fractions=[0.8] * 24,
     )
     monkeypatch.setattr(
-        "custom_components.roommind.control.mpc_controller.MPCOptimizer.optimize",
+        "custom_components.roommind_cc.control.mpc_controller.MPCOptimizer.optimize",
         lambda *a, **kw: fake_plan,
     )
 
@@ -701,7 +701,7 @@ def test_safety_guard_suppresses_cooling_when_prediction_stays_cool(monkeypatch)
         power_fractions=[0.8] * 24,
     )
     monkeypatch.setattr(
-        "custom_components.roommind.control.mpc_controller.MPCOptimizer.optimize",
+        "custom_components.roommind_cc.control.mpc_controller.MPCOptimizer.optimize",
         lambda *a, **kw: fake_plan,
     )
 
@@ -738,7 +738,7 @@ def test_hard_ceiling_overrides_heating_past_overshoot(monkeypatch):
         power_fractions=[0.8] * 24,
     )
     monkeypatch.setattr(
-        "custom_components.roommind.control.mpc_controller.MPCOptimizer.optimize",
+        "custom_components.roommind_cc.control.mpc_controller.MPCOptimizer.optimize",
         lambda *a, **kw: fake_plan,
     )
     # 23°C > 21°C + 1.0 → hard ceiling must fire, overriding min-run
@@ -766,7 +766,7 @@ def test_hard_ceiling_does_not_fire_below_threshold(monkeypatch):
         power_fractions=[0.8] * 24,
     )
     monkeypatch.setattr(
-        "custom_components.roommind.control.mpc_controller.MPCOptimizer.optimize",
+        "custom_components.roommind_cc.control.mpc_controller.MPCOptimizer.optimize",
         lambda *a, **kw: fake_plan,
     )
     # 21.5°C >= 21°C → model-based guard entry, outdoor=5 → prediction dips → allow
@@ -794,7 +794,7 @@ def test_hard_ceiling_overrides_cooling_past_overshoot(monkeypatch):
         power_fractions=[0.8] * 24,
     )
     monkeypatch.setattr(
-        "custom_components.roommind.control.mpc_controller.MPCOptimizer.optimize",
+        "custom_components.roommind_cc.control.mpc_controller.MPCOptimizer.optimize",
         lambda *a, **kw: fake_plan,
     )
     # 21°C < 23°C - 1.0 = 22°C → hard ceiling must fire
@@ -822,7 +822,7 @@ def test_hard_ceiling_exact_boundary_does_not_fire(monkeypatch):
         power_fractions=[0.8] * 24,
     )
     monkeypatch.setattr(
-        "custom_components.roommind.control.mpc_controller.MPCOptimizer.optimize",
+        "custom_components.roommind_cc.control.mpc_controller.MPCOptimizer.optimize",
         lambda *a, **kw: fake_plan,
     )
     # 22°C is exactly 21+1.0 → strict > means hard ceiling does NOT fire
@@ -984,7 +984,7 @@ def test_mpc_guard_horizon_extended_for_ufh(monkeypatch):
     )
 
     monkeypatch.setattr(
-        "custom_components.roommind.control.mpc_controller.MPCOptimizer.optimize",
+        "custom_components.roommind_cc.control.mpc_controller.MPCOptimizer.optimize",
         lambda *a, **kw: fake_plan,
     )
     mode, _ = ctrl._evaluate_mpc(21.0, TargetTemps(heat=21.0, cool=25.0))

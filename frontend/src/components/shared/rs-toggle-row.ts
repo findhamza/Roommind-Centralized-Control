@@ -2,7 +2,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import "./rs-info-icon";
 
-@customElement("rs-toggle-row")
+@customElement("rmc-toggle-row")
 export class RsToggleRow extends LitElement {
   @property({ type: String }) public label = "";
   @property({ type: String }) public hint = "";
@@ -42,7 +42,7 @@ export class RsToggleRow extends LitElement {
       <div class="toggle-row">
         <div class="toggle-text">
           <span class="toggle-label">${this.label}</span>
-          ${this.hint ? html`<rs-info-icon .text=${this.hint}></rs-info-icon>` : nothing}
+          ${this.hint ? html`<rmc-info-icon .text=${this.hint}></rmc-info-icon>` : nothing}
         </div>
         <ha-switch
           .checked=${this.checked}
@@ -66,6 +66,6 @@ export class RsToggleRow extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-toggle-row": RsToggleRow;
+    "rmc-toggle-row": RsToggleRow;
   }
 }

@@ -26,7 +26,7 @@ class TestCoordinatorMPCIntegration:
             "area_id": "mpc_room",
         }
         store = _make_store_mock({"mpc_room": room})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="17.0", humidity="50.0"))
         hass.services.async_call = AsyncMock()
@@ -60,7 +60,7 @@ class TestCoordinatorMPCIntegration:
             "area_id": "bangbang_room",
         }
         store = _make_store_mock({"bangbang_room": room})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="16.0", humidity="50.0"))
         hass.services.async_call = AsyncMock()
@@ -93,7 +93,7 @@ class TestCoordinatorMPCIntegration:
         }
         store = _make_store_mock({"forecast_room": room})
         store.get_settings.return_value = {"weather_entity": "weather.home"}
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(temp="17.0", humidity="50.0", extra={"weather.home": ("cloudy", None)})
@@ -130,7 +130,7 @@ class TestCoordinatorMPCIntegration:
             "area_id": "learning_room",
         }
         store = _make_store_mock({"learning_room": room})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="18.5", humidity="50.0"))
         hass.services.async_call = AsyncMock()
@@ -155,7 +155,7 @@ class TestCoordinatorMPCIntegration:
         }
         store = _make_store_mock({"idle_room": room})
         store.get_settings = MagicMock(return_value={"outdoor_temp_sensor": "sensor.outdoor_temp"})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
@@ -219,7 +219,7 @@ class TestResidualHeatTracking:
         # Default: no heating_system_type
         store = _make_store_mock(rooms={room["area_id"]: room})
         store.get_settings.return_value = {"climate_control_active": True}
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = make_mock_states_get(
             temp="18.0",
             schedule_state="on",
@@ -238,7 +238,7 @@ class TestResidualHeatTracking:
         room = {**SAMPLE_ROOM, "heating_system_type": "underfloor"}
         store = _make_store_mock(rooms={room["area_id"]: room})
         store.get_settings.return_value = {"climate_control_active": True}
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = make_mock_states_get(
             temp="18.0",
             schedule_state="on",
@@ -257,7 +257,7 @@ class TestResidualHeatTracking:
         room = {**SAMPLE_ROOM, "heating_system_type": "underfloor"}
         store = _make_store_mock(rooms={room["area_id"]: room})
         store.get_settings.return_value = {"climate_control_active": True}
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.services.async_call = AsyncMock()
         aid = room["area_id"]
 
@@ -294,7 +294,7 @@ class TestResidualHeatTracking:
         room = {**SAMPLE_ROOM, "heating_system_type": "radiator"}
         store = _make_store_mock(rooms={room["area_id"]: room})
         store.get_settings.return_value = {"climate_control_active": True}
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.services.async_call = AsyncMock()
         aid = room["area_id"]
 
@@ -337,7 +337,7 @@ class TestResidualHeatTracking:
         room = {**SAMPLE_ROOM, "heating_system_type": "underfloor"}
         store = _make_store_mock(rooms={room["area_id"]: room})
         store.get_settings.return_value = {"climate_control_active": True}
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.services.async_call = AsyncMock()
         aid = room["area_id"]
 
@@ -373,7 +373,7 @@ class TestResidualHeatTracking:
         }
         store = _make_store_mock(rooms={room["area_id"]: room})
         store.get_settings.return_value = {"climate_control_active": True}
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = make_mock_states_get(
             temp="20.0",
             schedule_state="on",

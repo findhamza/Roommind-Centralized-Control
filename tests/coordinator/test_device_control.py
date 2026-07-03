@@ -303,7 +303,7 @@ class TestFahrenheitConversion:
         hass.config.units.temperature_unit = UnitOfTemperature.FAHRENHEIT
 
         store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         # Sensor reports 64.4degF (= 18degC), outdoor 50degF (= 10degC)
         hass.states.get = MagicMock(
@@ -332,7 +332,7 @@ class TestFahrenheitConversion:
         """Valve protection set_temperature uses Fahrenheit when HA is in degF mode."""
         from homeassistant.const import UnitOfTemperature
 
-        from custom_components.roommind.const import HEATING_BOOST_TARGET
+        from custom_components.roommind_cc.const import HEATING_BOOST_TARGET
 
         hass.config.units.temperature_unit = UnitOfTemperature.FAHRENHEIT
 
@@ -342,7 +342,7 @@ class TestFahrenheitConversion:
             "valve_protection_interval_days": 7,
         }
         store.async_save_settings = AsyncMock()
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(temp="69.8", temp_unit="°F"),  # 69.8degF ~ 21degC
         )
@@ -377,7 +377,7 @@ class TestFahrenheitConversion:
         hass.config.units.temperature_unit = UnitOfTemperature.FAHRENHEIT
 
         store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         # TRV reports max_temp=95degF (= 35degC). Bug: treated as 95degC.
         hass.states.get = MagicMock(
@@ -420,7 +420,7 @@ class TestFahrenheitConversion:
         hass.config.units.temperature_unit = UnitOfTemperature.FAHRENHEIT
 
         store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         # TRV reports max_temp=95degF (= 35degC)
         hass.states.get = MagicMock(
@@ -471,7 +471,7 @@ class TestManagedModeDisplay:
     async def test_managed_mode_display_idle_at_setpoint(self, hass, mock_config_entry):
         """Managed Mode: device at setpoint without hvac_action -> display idle (#69)."""
         store = _make_store_mock({"living_room_abc12345": MANAGED_ROOM})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         # Device in heat mode, current_temp (21) >= setpoint (21) -> inferred idle
         device_state = MagicMock()
@@ -502,7 +502,7 @@ class TestManagedModeDisplay:
     async def test_managed_mode_display_heating_below_setpoint(self, hass, mock_config_entry):
         """Managed Mode: device below setpoint without hvac_action -> display heating (#69)."""
         store = _make_store_mock({"living_room_abc12345": MANAGED_ROOM})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         # Device in heat mode, current_temp (18) < setpoint (21) -> inferred heating
         device_state = MagicMock()
@@ -533,7 +533,7 @@ class TestManagedModeDisplay:
     async def test_managed_mode_display_uses_hvac_action(self, hass, mock_config_entry):
         """Managed Mode: device with hvac_action=idle -> display idle (#69)."""
         store = _make_store_mock({"living_room_abc12345": MANAGED_ROOM})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         device_state = MagicMock()
         device_state.state = "heat"
@@ -563,7 +563,7 @@ class TestManagedModeDisplay:
     async def test_managed_mode_ekf_trains_inferred_idle(self, hass, mock_config_entry):
         """Managed Mode: EKF should train with inferred idle, not always heating (#69)."""
         store = _make_store_mock({"living_room_abc12345": MANAGED_ROOM})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         # Device at setpoint -> inferred idle. EKF should see idle, not heating.
         device_state = MagicMock()
@@ -604,7 +604,7 @@ class TestManagedModeDisplay:
             "climate_mode": "cool_only",
         }
         store = _make_store_mock({"living_room_abc12345": managed_cool_room})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
 
         # AC in cool mode, current_temp (21) <= setpoint (22) -> inferred idle
         device_state = MagicMock()

@@ -33,8 +33,11 @@ async def async_setup_entry(
     store = hass.data[DOMAIN]["store"]
     coordinator.async_add_switch_entities = async_add_entities
 
-    # Global vacation switch (always created)
+    # Global vacation switch (always created) + per-zone enable switches
     entities: list[SwitchEntity] = [RoomMindVacationSwitch(coordinator)]
+    for zone in store.get_settings().get("priority_zones") or []:
+        if zone.get("id"):
+            entities.append(RoomMindZoneEnabledSwitch(coordinator, zone["id"], zone.get("name", "")))
 
     rooms = store.get_rooms()
     for area_id, room in rooms.items():
@@ -146,3 +149,48 @@ class RoomMindVacationSwitch(CoordinatorEntity, SwitchEntity):
         store = self.coordinator.hass.data[DOMAIN]["store"]
         await store.async_save_settings({"vacation_until": None})
         await self.coordinator.async_request_refresh()
+
+
+class RoomMindZoneEnabledSwitch(CoordinatorEntity, SwitchEntity):
+    """Switch to toggle one priority zone's forcing mode.
+
+    Turning off mid-session restores the thermostat setpoint on the next
+    coordinator cycle (the zone's manager ends its forcing session on
+    disable).
+    """
+
+    _attr_has_entity_name = True
+
+    def __init__(self, coordinator: RoomMindCoordinator, zone_id: str, zone_name: str = "") -> None:
+        super().__init__(coordinator)
+        self._zone_id = zone_id
+        self._attr_unique_id = f"{DOMAIN}_zone_{zone_id}_enabled"
+        self._attr_name = f"{zone_name or zone_id} Zone Priority Mode"
+        self._attr_icon = "mdi:home-thermometer-outline"
+        self.entity_id = f"switch.{DOMAIN}_zone_{zone_id}_enabled"
+
+    @property
+    def is_on(self) -> bool:
+        """Return True if this zone is enabled."""
+        store = self.coordinator.hass.data[DOMAIN]["store"]
+        for zone in store.get_settings().get("priority_zones") or []:
+            if zone.get("id") == self._zone_id:
+                return bool(zone.get("enabled", False))
+        return False
+
+    async def _async_set_enabled(self, enabled: bool) -> None:
+        store = self.coordinator.hass.data[DOMAIN]["store"]
+        zones = [dict(z) for z in store.get_settings().get("priority_zones") or []]
+        for zone in zones:
+            if zone.get("id") == self._zone_id:
+                zone["enabled"] = enabled
+        await store.async_save_settings({"priority_zones": zones})
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Enable this priority zone."""
+        await self._async_set_enabled(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Disable this priority zone."""
+        await self._async_set_enabled(False)

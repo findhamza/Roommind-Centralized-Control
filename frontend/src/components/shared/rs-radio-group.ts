@@ -6,7 +6,7 @@ export interface RadioOption {
   label: string;
 }
 
-@customElement("rs-radio-group")
+@customElement("rmc-radio-group")
 export class RsRadioGroup extends LitElement {
   @property({ type: Array }) public options: RadioOption[] = [];
   @property({ type: String }) public selected = "";
@@ -67,6 +67,6 @@ export class RsRadioGroup extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-radio-group": RsRadioGroup;
+    "rmc-radio-group": RsRadioGroup;
   }
 }

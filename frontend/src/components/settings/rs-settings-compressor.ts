@@ -9,7 +9,7 @@ import { getSelectValue } from "../../utils/events";
 import "../shared/rs-confirm-button";
 import { inputStyles } from "../../styles/input-styles";
 
-@customElement("rs-settings-compressor")
+@customElement("rmc-settings-compressor")
 export class RsSettingsCompressor extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: Array }) public compressorGroups: CompressorGroup[] = [];
@@ -265,7 +265,7 @@ export class RsSettingsCompressor extends LitElement {
         </div>
 
         <div class="delete-row">
-          <rs-confirm-button
+          <rmc-confirm-button
             .label=${localize("compressor.delete", l)}
             .confirmMessage=${localize("compressor.delete_confirm", l).replace(
               "{name}",
@@ -275,7 +275,7 @@ export class RsSettingsCompressor extends LitElement {
             @confirmed=${() => {
               this._fire(this.compressorGroups.filter((_, i) => i !== idx));
             }}
-          ></rs-confirm-button>
+          ></rmc-confirm-button>
         </div>
       </div>
     `;
@@ -367,6 +367,6 @@ export class RsSettingsCompressor extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-settings-compressor": RsSettingsCompressor;
+    "rmc-settings-compressor": RsSettingsCompressor;
   }
 }

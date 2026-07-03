@@ -8,7 +8,7 @@ import { localize, type TranslationKey } from "../../utils/localize";
 import { infoIconStyles } from "../../styles/info-icon-styles";
 import { tempUnit, toDisplayDelta } from "../../utils/temperature";
 
-@customElement("rs-analytics-model")
+@customElement("rmc-analytics-model")
 export class RsAnalyticsModel extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ attribute: false }) public data: AnalyticsData | null = null;
@@ -378,6 +378,6 @@ export class RsAnalyticsModel extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-analytics-model": RsAnalyticsModel;
+    "rmc-analytics-model": RsAnalyticsModel;
   }
 }

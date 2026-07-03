@@ -8,7 +8,7 @@ import type { HomeAssistant, RoomConfig } from "../../types";
 import { localize } from "../../utils/localize";
 import { fireSaveStatus, getSelectValue } from "../../utils/events";
 
-@customElement("rs-settings-reset")
+@customElement("rmc-settings-reset")
 export class RsSettingsReset extends RsSettingsBase {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ attribute: false }) public rooms: Record<string, RoomConfig> = {};
@@ -92,7 +92,7 @@ export class RsSettingsReset extends RsSettingsBase {
     if (!confirm(localize("settings.reset_room_confirm", l))) return;
     try {
       fireSaveStatus(this, "saving");
-      await this.hass.callWS({ type: "roommind/thermal/reset", area_id: areaId });
+      await this.hass.callWS({ type: "roommind_cc/thermal/reset", area_id: areaId });
       fireSaveStatus(this, "saved");
     } catch {
       fireSaveStatus(this, "error");
@@ -104,7 +104,7 @@ export class RsSettingsReset extends RsSettingsBase {
     if (!confirm(localize("settings.reset_all_confirm", l))) return;
     try {
       fireSaveStatus(this, "saving");
-      await this.hass.callWS({ type: "roommind/thermal/reset_all" });
+      await this.hass.callWS({ type: "roommind_cc/thermal/reset_all" });
       fireSaveStatus(this, "saved");
     } catch {
       fireSaveStatus(this, "error");
@@ -182,6 +182,6 @@ export class RsSettingsReset extends RsSettingsBase {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-settings-reset": RsSettingsReset;
+    "rmc-settings-reset": RsSettingsReset;
   }
 }

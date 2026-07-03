@@ -6,7 +6,7 @@ from typing import NamedTuple
 from homeassistant.const import Platform
 from homeassistant.core import Context
 
-DOMAIN = "roommind"
+DOMAIN = "roommind_cc"
 VERSION = "1.7.4"
 
 # Platforms
@@ -44,8 +44,8 @@ DEFAULT_ECO_COOL = 27.0
 
 
 # Context identifier for RoomMind-initiated service calls.
-# Automations can check: trigger.context.parent_id == "roommind"
-ROOMMIND_CONTEXT_ID = "roommind"
+# Automations can check: trigger.context.parent_id == "roommind_cc"
+ROOMMIND_CONTEXT_ID = "roommind_cc"
 
 
 def make_roommind_context() -> Context:
@@ -94,7 +94,7 @@ EKF_UPDATE_MIN_DT = 3.0  # minutes — matches HISTORY_WRITE_CYCLES
 # Outdoor sensor watchdog: notify when no valid outdoor temperature for this
 # many coordinator cycles (60 × 30 s = 30 min).
 OUTDOOR_UNAVAILABLE_NOTIFY_CYCLES = 60
-OUTDOOR_UNAVAILABLE_NOTIFICATION_ID = "roommind_outdoor_unavailable"
+OUTDOOR_UNAVAILABLE_NOTIFICATION_ID = "roommind_cc_outdoor_unavailable"
 
 # Prediction clamping: max °C change in one prediction step (prevents unrealistic jumps)
 MAX_PREDICTION_DELTA = 3.0
@@ -167,6 +167,37 @@ HEAT_SOURCE_SECONDARY_POWER_SCALE = 0.7  # throttle secondary when both active (
 # Compressor group defaults
 DEFAULT_COMPRESSOR_MIN_RUN_MINUTES = 15
 DEFAULT_COMPRESSOR_MIN_OFF_MINUTES = 5
+
+# Single-zone priority room mode (one central thermostat, remote sensors)
+SZ_STATUS_DISABLED = "disabled"
+SZ_STATUS_IDLE = "idle"
+SZ_STATUS_FORCING_COOLING = "forcing_cooling"
+SZ_STATUS_FORCING_HEATING = "forcing_heating"
+SZ_CONDITION_ALWAYS = "always"
+SZ_CONDITION_OCCUPIED = "occupied"
+SZ_CONDITION_SCHEDULE = "schedule"
+SZ_CONDITION_SLEEP = "sleep"
+SZ_CONDITIONS = [SZ_CONDITION_ALWAYS, SZ_CONDITION_OCCUPIED, SZ_CONDITION_SCHEDULE, SZ_CONDITION_SLEEP]
+SZ_RESTORE_BEHAVIORS = ["restore", "leave"]
+DEFAULT_SZ_COOL_START_THRESHOLD = 0.8  # °C priority room above cool target → start forcing (~1.5°F)
+DEFAULT_SZ_COOL_STOP_THRESHOLD = 0.2  # °C above cool target → stop forcing (~0.35°F)
+DEFAULT_SZ_HEAT_START_THRESHOLD = 0.8  # °C below heat target → start forcing
+DEFAULT_SZ_HEAT_STOP_THRESHOLD = 0.2  # °C below heat target → stop forcing
+DEFAULT_SZ_STATIC_BIAS = 1.5  # °C setpoint bias when dynamic_bias is off
+DEFAULT_SZ_MAX_OFFSET = 2.5  # °C max setpoint offset from the nominal setpoint
+DEFAULT_SZ_MAIN_MIN_TEMP = 20.0  # °C never cool the thermostat/main area below this
+DEFAULT_SZ_MAIN_MAX_TEMP = 26.0  # °C never heat the thermostat/main area above this
+DEFAULT_SZ_MIN_RUN_MINUTES = 10  # min forcing duration before setpoint restoration
+DEFAULT_SZ_MIN_OFF_MINUTES = 10  # cooldown after restoration before a new forcing session
+SZ_MIN_BIAS = 0.5  # °C floor for the dynamic bias (must move the thermostat meaningfully)
+SZ_TRIGGER_MARGIN = 0.2  # °C setpoint must be at least this far past the thermostat temp to force runtime
+SZ_SETPOINT_DEADBAND = 0.5  # °C min change before re-sending a deeper setpoint mid-session
+SZ_MAIN_OVERCOOL_TOLERANCE = 1.5  # °C main area may drift past its own target unless priority_wins
+SZ_RATE_RATIO_MIN = 0.25  # clamp for learned main/priority response-rate ratio
+SZ_RATE_RATIO_MAX = 4.0
+SZ_MIN_RATE_OBSERVATIONS = 20  # active EKF samples before a learned rate is trusted
+SZ_MANUAL_CHANGE_TOLERANCE = 0.5  # °C setpoint drift from our command → user override, abort
+SZ_MANUAL_GRACE_SECONDS = 90.0  # ignore setpoint drift right after commanding (device settle time)
 
 # Compressor group master device — conflict resolution strategies
 CONFLICT_RESOLUTION_HEATING_PRIORITY = "heating_priority"

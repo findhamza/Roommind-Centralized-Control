@@ -7,11 +7,12 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.roommind.const import DOMAIN, VACATION_SENTINEL_UNTIL
-from custom_components.roommind.switch import (
+from custom_components.roommind_cc.const import DOMAIN, VACATION_SENTINEL_UNTIL
+from custom_components.roommind_cc.switch import (
     RoomMindClimateControlSwitch,
     RoomMindCoverAutoSwitch,
     RoomMindVacationSwitch,
+    RoomMindZoneEnabledSwitch,
     _create_room_switches,
     async_setup_entry,
 )
@@ -24,7 +25,7 @@ def mock_coordinator():
     coordinator.hass = MagicMock()
     coordinator.async_request_refresh = AsyncMock()
     store = MagicMock()
-    coordinator.hass.data = {"roommind": {"store": store}}
+    coordinator.hass.data = {"roommind_cc": {"store": store}}
     return coordinator, store
 
 
@@ -73,8 +74,8 @@ def test_switch_unique_id_and_entity_id(mock_coordinator):
     """Switch has correct unique_id and entity_id."""
     coordinator, _ = mock_coordinator
     switch = RoomMindCoverAutoSwitch(coordinator, "living_room")
-    assert switch.unique_id == "roommind_living_room_cover_auto"
-    assert switch.entity_id == "switch.roommind_living_room_cover_auto"
+    assert switch.unique_id == "roommind_cc_living_room_cover_auto"
+    assert switch.entity_id == "switch.roommind_cc_living_room_cover_auto"
 
 
 def test_create_room_switches(mock_coordinator):
@@ -109,6 +110,7 @@ async def test_async_setup_entry_creates_entities_for_rooms_with_covers():
         "living_room": {"covers": ["cover.blinds"]},
         "bedroom": {},  # no covers
     }
+    store.get_settings.return_value = {}
 
     entry = MagicMock()
     entry.entry_id = "test_entry"
@@ -123,7 +125,7 @@ async def test_async_setup_entry_creates_entities_for_rooms_with_covers():
     assert coordinator.async_add_switch_entities is async_add_entities
     async_add_entities.assert_called_once()
     entities = async_add_entities.call_args[0][0]
-    assert len(entities) == 4
+    assert len(entities) == 4  # vacation + 2 climate + 1 cover
     assert isinstance(entities[0], RoomMindVacationSwitch)
     climate_switches = [e for e in entities if isinstance(e, RoomMindClimateControlSwitch)]
     cover_switches = [e for e in entities if isinstance(e, RoomMindCoverAutoSwitch)]
@@ -144,6 +146,7 @@ async def test_async_setup_entry_no_covers_still_creates_vacation_switch():
 
     store = MagicMock()
     store.get_rooms.return_value = {"bedroom": {}}
+    store.get_settings.return_value = {}
 
     entry = MagicMock()
     entry.entry_id = "test_entry"
@@ -162,6 +165,63 @@ async def test_async_setup_entry_no_covers_still_creates_vacation_switch():
     assert isinstance(entities[1], RoomMindClimateControlSwitch)
 
 
+@pytest.mark.asyncio
+async def test_async_setup_entry_creates_zone_switches():
+    """One enable switch is created per configured priority zone."""
+    coordinator = MagicMock()
+    coordinator._switch_entity_areas = set()
+    coordinator._climate_control_switch_areas = set()
+
+    store = MagicMock()
+    store.get_rooms.return_value = {}
+    store.get_settings.return_value = {
+        "priority_zones": [
+            {"id": "down", "name": "Downstairs", "enabled": True},
+            {"id": "up", "name": "Upstairs"},
+        ]
+    }
+
+    entry = MagicMock()
+    entry.entry_id = "test_entry"
+
+    hass = MagicMock()
+    hass.data = {DOMAIN: {entry.entry_id: coordinator, "store": store}}
+
+    async_add_entities = MagicMock()
+
+    await async_setup_entry(hass, entry, async_add_entities)
+
+    entities = async_add_entities.call_args[0][0]
+    zone_switches = [e for e in entities if isinstance(e, RoomMindZoneEnabledSwitch)]
+    assert len(zone_switches) == 2
+    assert zone_switches[0].entity_id == "switch.roommind_cc_zone_down_enabled"
+
+
+@pytest.mark.asyncio
+async def test_zone_switch_toggles_only_its_zone():
+    """The zone enable switch updates its own zone entry only."""
+    coordinator = MagicMock()
+    coordinator.async_request_refresh = AsyncMock()
+    store = MagicMock()
+    store.get_settings.return_value = {
+        "priority_zones": [
+            {"id": "down", "enabled": True},
+            {"id": "up", "enabled": False},
+        ]
+    }
+    store.async_save_settings = AsyncMock()
+    coordinator.hass = MagicMock()
+    coordinator.hass.data = {DOMAIN: {"store": store}}
+
+    switch = RoomMindZoneEnabledSwitch(coordinator, "up", "Upstairs")
+    assert switch.is_on is False
+
+    await switch.async_turn_on()
+
+    saved = store.async_save_settings.call_args[0][0]["priority_zones"]
+    assert saved == [{"id": "down", "enabled": True}, {"id": "up", "enabled": True}]
+
+
 @pytest.fixture
 def mock_vacation_coordinator():
     coordinator = MagicMock()
@@ -176,8 +236,8 @@ def test_vacation_switch_unique_id_and_entity_id(mock_vacation_coordinator):
     """Vacation switch has correct unique_id and entity_id."""
     coordinator, _ = mock_vacation_coordinator
     switch = RoomMindVacationSwitch(coordinator)
-    assert switch.unique_id == "roommind_vacation"
-    assert switch.entity_id == "switch.roommind_vacation"
+    assert switch.unique_id == "roommind_cc_vacation"
+    assert switch.entity_id == "switch.roommind_cc_vacation"
     assert switch.icon == "mdi:beach"
     assert switch.name == "Vacation Mode"
 
@@ -319,5 +379,5 @@ async def test_climate_control_switch_turn_off(mock_cc_coordinator):
 def test_climate_control_switch_unique_id_and_entity_id(mock_cc_coordinator):
     coordinator, _ = mock_cc_coordinator
     switch = RoomMindClimateControlSwitch(coordinator, "living_room")
-    assert switch.unique_id == "roommind_living_room_climate_control"
-    assert switch.entity_id == "switch.roommind_living_room_climate_control"
+    assert switch.unique_id == "roommind_cc_living_room_climate_control"
+    assert switch.entity_id == "switch.roommind_cc_living_room_climate_control"

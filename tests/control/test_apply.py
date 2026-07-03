@@ -6,8 +6,8 @@ from unittest.mock import ANY, AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.roommind.const import TargetTemps
-from custom_components.roommind.control.mpc_controller import (
+from custom_components.roommind_cc.const import TargetTemps
+from custom_components.roommind_cc.control.mpc_controller import (
     MPCController,
     _last_commands,
     _resolve_idle_setpoint,
@@ -18,7 +18,7 @@ from custom_components.roommind.control.mpc_controller import (
     clear_command_cache,
     resolve_hvac_mode,
 )
-from custom_components.roommind.control.thermal_model import RoomModelManager
+from custom_components.roommind_cc.control.thermal_model import RoomModelManager
 
 from .conftest import build_hass, make_room
 
@@ -98,7 +98,7 @@ async def test_mpc_apply_idle():
 @pytest.mark.asyncio
 async def test_async_apply_backward_compat():
     """Calling async_apply without power_fraction uses default 1.0 → 30°C boost."""
-    from custom_components.roommind.control.mpc_controller import HEATING_BOOST_TARGET
+    from custom_components.roommind_cc.control.mpc_controller import HEATING_BOOST_TARGET
 
     hass = build_hass()
     room = make_room()
@@ -125,7 +125,7 @@ async def test_mpc_apply_heating_fahrenheit():
     """set_temperature uses Fahrenheit when HA is configured for °F."""
     from homeassistant.const import UnitOfTemperature
 
-    from custom_components.roommind.control.mpc_controller import HEATING_BOOST_TARGET
+    from custom_components.roommind_cc.control.mpc_controller import HEATING_BOOST_TARGET
 
     hass = build_hass()
     hass.config.units.temperature_unit = UnitOfTemperature.FAHRENHEIT
@@ -758,7 +758,7 @@ async def test_apply_heating_cool_only_ac_turned_off():
 @pytest.mark.asyncio
 async def test_apply_heating_trv_still_gets_boost():
     """Heating: TRV in thermostats[] still gets proportional 30°C boost."""
-    from custom_components.roommind.control.mpc_controller import HEATING_BOOST_TARGET
+    from custom_components.roommind_cc.control.mpc_controller import HEATING_BOOST_TARGET
 
     hass = build_hass()
     trv_state = MagicMock()
@@ -841,7 +841,7 @@ async def test_ac_only_room_can_heat():
 @pytest.mark.asyncio
 async def test_apply_heating_mixed_trv_and_ac():
     """Heating with TRV + heat-capable AC: TRV gets boost, AC gets proportional boost."""
-    from custom_components.roommind.control.mpc_controller import HEATING_BOOST_TARGET
+    from custom_components.roommind_cc.control.mpc_controller import HEATING_BOOST_TARGET
 
     hass = build_hass()
 
@@ -4149,7 +4149,7 @@ async def test_proportional_setpoint_unchanged_default():
     assert set_temp_calls
     # Default proportional: 19 + 1.0 * (30 - 19) = 30.0 (boost)
     temp_arg = set_temp_calls[0][0][2]["temperature"]
-    from custom_components.roommind.control.mpc_controller import HEATING_BOOST_TARGET
+    from custom_components.roommind_cc.control.mpc_controller import HEATING_BOOST_TARGET
 
     assert temp_arg == HEATING_BOOST_TARGET
 

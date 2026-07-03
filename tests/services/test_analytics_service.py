@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.roommind.services.analytics_service import (
+from custom_components.roommind_cc.services.analytics_service import (
     _compute_target_forecast,
     _safe_int,
     build_analytics_data,
@@ -35,19 +35,19 @@ class TestComputeTargetForecast:
         }
         settings = {}
 
-        from custom_components.roommind.const import TargetTemps
+        from custom_components.roommind_cc.const import TargetTemps
 
         with (
             patch(
-                "custom_components.roommind.utils.presence_utils.is_presence_away",
+                "custom_components.roommind_cc.utils.presence_utils.is_presence_away",
                 return_value=False,
             ),
             patch(
-                "custom_components.roommind.utils.schedule_utils.get_active_schedule_entity",
+                "custom_components.roommind_cc.utils.schedule_utils.get_active_schedule_entity",
                 return_value=None,
             ),
             patch(
-                "custom_components.roommind.utils.schedule_utils.resolve_targets_at_time",
+                "custom_components.roommind_cc.utils.schedule_utils.resolve_targets_at_time",
                 return_value=TargetTemps(heat=None, cool=24.0),
             ),
         ):
@@ -76,19 +76,19 @@ class TestComputeTargetForecast:
         }
         settings = {}
 
-        from custom_components.roommind.const import TargetTemps
+        from custom_components.roommind_cc.const import TargetTemps
 
         with (
             patch(
-                "custom_components.roommind.utils.presence_utils.is_presence_away",
+                "custom_components.roommind_cc.utils.presence_utils.is_presence_away",
                 return_value=False,
             ),
             patch(
-                "custom_components.roommind.utils.schedule_utils.get_active_schedule_entity",
+                "custom_components.roommind_cc.utils.schedule_utils.get_active_schedule_entity",
                 return_value=None,
             ),
             patch(
-                "custom_components.roommind.utils.schedule_utils.resolve_targets_at_time",
+                "custom_components.roommind_cc.utils.schedule_utils.resolve_targets_at_time",
                 return_value=TargetTemps(heat=21.0, cool=24.0),
             ),
         ):
@@ -116,19 +116,19 @@ class TestComputeTargetForecast:
         }
         settings = {}
 
-        from custom_components.roommind.const import TargetTemps
+        from custom_components.roommind_cc.const import TargetTemps
 
         with (
             patch(
-                "custom_components.roommind.utils.presence_utils.is_presence_away",
+                "custom_components.roommind_cc.utils.presence_utils.is_presence_away",
                 return_value=False,
             ),
             patch(
-                "custom_components.roommind.utils.schedule_utils.get_active_schedule_entity",
+                "custom_components.roommind_cc.utils.schedule_utils.get_active_schedule_entity",
                 return_value=None,
             ),
             patch(
-                "custom_components.roommind.utils.schedule_utils.resolve_targets_at_time",
+                "custom_components.roommind_cc.utils.schedule_utils.resolve_targets_at_time",
                 return_value=TargetTemps(heat=21.0, cool=24.0),
             ),
         ):
@@ -159,19 +159,19 @@ class TestComputeTargetForecast:
         }
         settings = {}
 
-        from custom_components.roommind.const import TargetTemps
+        from custom_components.roommind_cc.const import TargetTemps
 
         with (
             patch(
-                "custom_components.roommind.utils.presence_utils.is_presence_away",
+                "custom_components.roommind_cc.utils.presence_utils.is_presence_away",
                 return_value=False,
             ),
             patch(
-                "custom_components.roommind.utils.schedule_utils.get_active_schedule_entity",
+                "custom_components.roommind_cc.utils.schedule_utils.get_active_schedule_entity",
                 return_value=None,
             ),
             patch(
-                "custom_components.roommind.utils.schedule_utils.resolve_targets_at_time",
+                "custom_components.roommind_cc.utils.schedule_utils.resolve_targets_at_time",
                 return_value=TargetTemps(heat=19.5, cool=23.5),
             ) as mock_resolve,
         ):
@@ -216,7 +216,7 @@ class TestComputeTargetForecast:
         cache = {"schedule.heating": schedule_data}
 
         with patch(
-            "custom_components.roommind.utils.presence_utils.is_presence_away",
+            "custom_components.roommind_cc.utils.presence_utils.is_presence_away",
             return_value=False,
         ):
             result = await _compute_target_forecast(
@@ -252,7 +252,7 @@ class TestBuildAnalyticsData:
         coordinator = None
 
         with patch(
-            "custom_components.roommind.services.analytics_service._compute_target_forecast",
+            "custom_components.roommind_cc.services.analytics_service._compute_target_forecast",
             side_effect=RuntimeError("boom"),
         ):
             result = await build_analytics_data(hass, "living_room", "12h", store, coordinator)
@@ -269,7 +269,7 @@ class TestBuildAnalyticsData:
         store.get_settings.return_value = {"prediction_enabled": True}
         store.get_room.return_value = {"temperature_sensor": "sensor.temp"}
 
-        from custom_components.roommind.control.thermal_model import ThermalEKF
+        from custom_components.roommind_cc.control.thermal_model import ThermalEKF
 
         est = ThermalEKF()
         model = est.get_model()
@@ -321,24 +321,24 @@ class TestBuildAnalyticsData:
         now = time.time()
         with (
             patch(
-                "custom_components.roommind.services.analytics_service._compute_target_forecast",
+                "custom_components.roommind_cc.services.analytics_service._compute_target_forecast",
                 new_callable=AsyncMock,
                 return_value=[{"ts": now, "target_temp": 21.0, "heat_target": 21.0, "cool_target": 24.0}],
             ),
             patch(
-                "custom_components.roommind.services.analytics_service.get_can_heat_cool",
+                "custom_components.roommind_cc.services.analytics_service.get_can_heat_cool",
                 return_value=(True, False),
             ),
             patch(
-                "custom_components.roommind.services.analytics_service.is_mpc_active",
+                "custom_components.roommind_cc.services.analytics_service.is_mpc_active",
                 return_value=False,
             ),
             patch(
-                "custom_components.roommind.services.analytics_service.check_acs_can_heat",
+                "custom_components.roommind_cc.services.analytics_service.check_acs_can_heat",
                 return_value=False,
             ),
             patch(
-                "custom_components.roommind.control.analytics_simulator.simulate_prediction",
+                "custom_components.roommind_cc.control.analytics_simulator.simulate_prediction",
                 return_value=[21.0],
             ) as mock_sim,
         ):
@@ -405,20 +405,20 @@ class TestBuildAnalyticsData:
         now = time.time()
         with (
             patch(
-                "custom_components.roommind.services.analytics_service._compute_target_forecast",
+                "custom_components.roommind_cc.services.analytics_service._compute_target_forecast",
                 new_callable=AsyncMock,
                 return_value=[{"ts": now, "target_temp": 21.0, "heat_target": 21.0, "cool_target": 24.0}],
             ),
             patch(
-                "custom_components.roommind.services.analytics_service.get_can_heat_cool",
+                "custom_components.roommind_cc.services.analytics_service.get_can_heat_cool",
                 return_value=(True, False),
             ),
             patch(
-                "custom_components.roommind.services.analytics_service.is_mpc_active",
+                "custom_components.roommind_cc.services.analytics_service.is_mpc_active",
                 return_value=False,
             ),
             patch(
-                "custom_components.roommind.services.analytics_service.check_acs_can_heat",
+                "custom_components.roommind_cc.services.analytics_service.check_acs_can_heat",
                 return_value=False,
             ),
         ):
@@ -442,7 +442,7 @@ class TestBuildAnalyticsData:
             "heating_system_type": "underfloor",
         }
 
-        from custom_components.roommind.control.thermal_model import ThermalEKF
+        from custom_components.roommind_cc.control.thermal_model import ThermalEKF
 
         est = ThermalEKF()
         model = est.get_model()
@@ -487,24 +487,24 @@ class TestBuildAnalyticsData:
 
         with (
             patch(
-                "custom_components.roommind.services.analytics_service._compute_target_forecast",
+                "custom_components.roommind_cc.services.analytics_service._compute_target_forecast",
                 new_callable=AsyncMock,
                 return_value=[{"ts": now, "target_temp": 21.0, "heat_target": 21.0, "cool_target": 24.0}],
             ),
             patch(
-                "custom_components.roommind.services.analytics_service.get_can_heat_cool",
+                "custom_components.roommind_cc.services.analytics_service.get_can_heat_cool",
                 return_value=(True, False),
             ),
             patch(
-                "custom_components.roommind.services.analytics_service.is_mpc_active",
+                "custom_components.roommind_cc.services.analytics_service.is_mpc_active",
                 return_value=False,
             ),
             patch(
-                "custom_components.roommind.services.analytics_service.check_acs_can_heat",
+                "custom_components.roommind_cc.services.analytics_service.check_acs_can_heat",
                 return_value=False,
             ),
             patch(
-                "custom_components.roommind.control.analytics_simulator.simulate_prediction",
+                "custom_components.roommind_cc.control.analytics_simulator.simulate_prediction",
                 return_value=[21.0],
             ) as mock_sim,
         ):
@@ -527,7 +527,7 @@ class TestCsvToPointsDeviceSetpoint:
 
     def test_device_setpoint_converted_to_float(self):
         """device_setpoint string is converted to float."""
-        from custom_components.roommind.services.analytics_service import _csv_to_points
+        from custom_components.roommind_cc.services.analytics_service import _csv_to_points
 
         rows = [
             {
@@ -550,7 +550,7 @@ class TestCsvToPointsDeviceSetpoint:
 
     def test_missing_device_setpoint_returns_none(self):
         """Row without device_setpoint key returns None (backward compat)."""
-        from custom_components.roommind.services.analytics_service import _csv_to_points
+        from custom_components.roommind_cc.services.analytics_service import _csv_to_points
 
         rows = [
             {
@@ -606,7 +606,7 @@ class TestBuildAnalyticsShadingFactor:
         store.get_settings.return_value = {"prediction_enabled": True}
         store.get_room.return_value = {"temperature_sensor": "sensor.temp"}
 
-        from custom_components.roommind.control.thermal_model import ThermalEKF
+        from custom_components.roommind_cc.control.thermal_model import ThermalEKF
 
         est = ThermalEKF()
         model = est.get_model()
@@ -648,28 +648,28 @@ class TestBuildAnalyticsShadingFactor:
 
         with (
             patch(
-                "custom_components.roommind.services.analytics_service._compute_target_forecast",
+                "custom_components.roommind_cc.services.analytics_service._compute_target_forecast",
                 new_callable=AsyncMock,
                 return_value=[{"ts": now, "target_temp": 21.0, "heat_target": 21.0, "cool_target": 24.0}],
             ),
             patch(
-                "custom_components.roommind.services.analytics_service.get_can_heat_cool",
+                "custom_components.roommind_cc.services.analytics_service.get_can_heat_cool",
                 return_value=(True, False),
             ),
             patch(
-                "custom_components.roommind.services.analytics_service.is_mpc_active",
+                "custom_components.roommind_cc.services.analytics_service.is_mpc_active",
                 return_value=False,
             ),
             patch(
-                "custom_components.roommind.services.analytics_service.check_acs_can_heat",
+                "custom_components.roommind_cc.services.analytics_service.check_acs_can_heat",
                 return_value=False,
             ),
             patch(
-                "custom_components.roommind.managers.cover_manager.compute_shading_factor",
+                "custom_components.roommind_cc.managers.cover_manager.compute_shading_factor",
                 return_value=0.5,
             ) as mock_shading,
             patch(
-                "custom_components.roommind.control.analytics_simulator.simulate_prediction",
+                "custom_components.roommind_cc.control.analytics_simulator.simulate_prediction",
                 return_value=[21.0],
             ) as mock_sim,
         ):
@@ -701,7 +701,7 @@ class TestBuildAnalyticsOccupancy:
             "occupancy_sensors": ["binary_sensor.occ1"],
         }
 
-        from custom_components.roommind.control.thermal_model import ThermalEKF
+        from custom_components.roommind_cc.control.thermal_model import ThermalEKF
 
         est = ThermalEKF()
         model = est.get_model()
@@ -743,24 +743,24 @@ class TestBuildAnalyticsOccupancy:
 
         with (
             patch(
-                "custom_components.roommind.services.analytics_service._compute_target_forecast",
+                "custom_components.roommind_cc.services.analytics_service._compute_target_forecast",
                 new_callable=AsyncMock,
                 return_value=[{"ts": now, "target_temp": 21.0, "heat_target": 21.0, "cool_target": 24.0}],
             ),
             patch(
-                "custom_components.roommind.services.analytics_service.get_can_heat_cool",
+                "custom_components.roommind_cc.services.analytics_service.get_can_heat_cool",
                 return_value=(True, False),
             ),
             patch(
-                "custom_components.roommind.services.analytics_service.is_mpc_active",
+                "custom_components.roommind_cc.services.analytics_service.is_mpc_active",
                 return_value=False,
             ),
             patch(
-                "custom_components.roommind.services.analytics_service.check_acs_can_heat",
+                "custom_components.roommind_cc.services.analytics_service.check_acs_can_heat",
                 return_value=False,
             ),
             patch(
-                "custom_components.roommind.control.analytics_simulator.simulate_prediction",
+                "custom_components.roommind_cc.control.analytics_simulator.simulate_prediction",
                 return_value=[21.0],
             ) as mock_sim,
         ):
@@ -785,7 +785,7 @@ class TestBuildAnalyticsOccupancy:
             "occupancy_sensors": ["binary_sensor.occ1"],
         }
 
-        from custom_components.roommind.control.thermal_model import ThermalEKF
+        from custom_components.roommind_cc.control.thermal_model import ThermalEKF
 
         est = ThermalEKF()
         model = est.get_model()
@@ -827,24 +827,24 @@ class TestBuildAnalyticsOccupancy:
 
         with (
             patch(
-                "custom_components.roommind.services.analytics_service._compute_target_forecast",
+                "custom_components.roommind_cc.services.analytics_service._compute_target_forecast",
                 new_callable=AsyncMock,
                 return_value=[{"ts": now, "target_temp": 21.0, "heat_target": 21.0, "cool_target": 24.0}],
             ),
             patch(
-                "custom_components.roommind.services.analytics_service.get_can_heat_cool",
+                "custom_components.roommind_cc.services.analytics_service.get_can_heat_cool",
                 return_value=(True, False),
             ),
             patch(
-                "custom_components.roommind.services.analytics_service.is_mpc_active",
+                "custom_components.roommind_cc.services.analytics_service.is_mpc_active",
                 return_value=False,
             ),
             patch(
-                "custom_components.roommind.services.analytics_service.check_acs_can_heat",
+                "custom_components.roommind_cc.services.analytics_service.check_acs_can_heat",
                 return_value=False,
             ),
             patch(
-                "custom_components.roommind.control.analytics_simulator.simulate_prediction",
+                "custom_components.roommind_cc.control.analytics_simulator.simulate_prediction",
                 return_value=[21.0],
             ) as mock_sim,
         ):

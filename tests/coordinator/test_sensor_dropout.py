@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.roommind.const import MAX_SENSOR_STALENESS, MODE_IDLE
+from custom_components.roommind_cc.const import MAX_SENSOR_STALENESS, MODE_IDLE
 
 from .conftest import (
     MANAGED_ROOM,
@@ -22,7 +22,7 @@ from .conftest import (
 async def test_sensor_dropout_keeps_previous_mode(hass, mock_config_entry):
     """When sensor drops out, cached temp keeps mode=heating instead of idle."""
     store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
-    hass.data = {"roommind": {"store": store}}
+    hass.data = {"roommind_cc": {"store": store}}
 
     # Cycle 1: valid temp → heating (18°C < 21°C comfort)
     hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="18.0"))
@@ -44,7 +44,7 @@ async def test_sensor_dropout_keeps_previous_mode(hass, mock_config_entry):
 async def test_sensor_dropout_staleness_timeout(hass, mock_config_entry):
     """Cached temp older than MAX_SENSOR_STALENESS → fall back to idle."""
     store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
-    hass.data = {"roommind": {"store": store}}
+    hass.data = {"roommind_cc": {"store": store}}
 
     # Cycle 1: populate cache
     hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="18.0"))
@@ -67,7 +67,7 @@ async def test_sensor_dropout_staleness_timeout(hass, mock_config_entry):
 async def test_sensor_dropout_ekf_skipped(hass, mock_config_entry):
     """EKF training is skipped during sensor dropout, even with cached temp."""
     store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
-    hass.data = {"roommind": {"store": store}}
+    hass.data = {"roommind_cc": {"store": store}}
 
     hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="18.0"))
     hass.services.async_call = AsyncMock()
@@ -90,7 +90,7 @@ async def test_sensor_dropout_ekf_skipped(hass, mock_config_entry):
 async def test_sensor_dropout_history_records_none(hass, mock_config_entry):
     """History CSV should record None for room_temp during dropout, not cached value."""
     store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
-    hass.data = {"roommind": {"store": store}}
+    hass.data = {"roommind_cc": {"store": store}}
 
     hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="18.0"))
     hass.services.async_call = AsyncMock()
@@ -109,7 +109,7 @@ async def test_sensor_dropout_history_records_none(hass, mock_config_entry):
 async def test_sensor_dropout_min_run_preserved(hass, mock_config_entry):
     """Min-run timer (_mode_on_since) survives sensor dropout."""
     store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
-    hass.data = {"roommind": {"store": store}}
+    hass.data = {"roommind_cc": {"store": store}}
 
     hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="18.0"))
     hass.services.async_call = AsyncMock()
@@ -132,7 +132,7 @@ async def test_sensor_dropout_min_run_preserved(hass, mock_config_entry):
 async def test_no_cache_first_cycle_stays_idle(hass, mock_config_entry):
     """First cycle with no prior cache and sensor=None → idle (no fallback available)."""
     store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
-    hass.data = {"roommind": {"store": store}}
+    hass.data = {"roommind_cc": {"store": store}}
 
     hass.states.get = MagicMock(side_effect=make_mock_states_get(temp=None))
     hass.services.async_call = AsyncMock()
@@ -146,7 +146,7 @@ async def test_no_cache_first_cycle_stays_idle(hass, mock_config_entry):
 async def test_room_removal_clears_cache(hass, mock_config_entry):
     """async_room_removed clears the temperature cache for that room."""
     store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
-    hass.data = {"roommind": {"store": store}}
+    hass.data = {"roommind_cc": {"store": store}}
 
     hass.states.get = MagicMock(side_effect=make_mock_states_get(temp="18.0"))
     hass.services.async_call = AsyncMock()
@@ -169,7 +169,7 @@ async def test_managed_mode_dropout_uses_cache(hass, mock_config_entry):
     """Managed Mode room with device temp dropout also uses cached temperature."""
     managed_room = {**MANAGED_ROOM, "area_id": "living_room_abc12345"}
     store = _make_store_mock({"living_room_abc12345": managed_room})
-    hass.data = {"roommind": {"store": store}}
+    hass.data = {"roommind_cc": {"store": store}}
 
     # Cycle 1: device reports temperature via climate entity
     climate_attrs = {

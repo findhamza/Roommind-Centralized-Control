@@ -12,7 +12,7 @@ import "./shared/rs-master-detail";
 import "./shared/rs-info-icon";
 import "./rs-cover-schedule";
 
-@customElement("rs-covers-section")
+@customElement("rmc-covers-section")
 export class RsCoverSection extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ attribute: false }) public area!: HassArea;
@@ -488,7 +488,7 @@ export class RsCoverSection extends LitElement {
         </ha-select>
       </div>
       <div class="detail-field">
-        <rs-threshold-field
+        <rmc-threshold-field
           .label=${localize("covers.per_cover_min_position", l)}
           .value=${currentMin ?? 0}
           .min=${0}
@@ -496,7 +496,7 @@ export class RsCoverSection extends LitElement {
           .step=${1}
           suffix="%"
           @value-changed=${(e: CustomEvent) => this._setMinPosition(entityId, e.detail as number)}
-        ></rs-threshold-field>
+        ></rmc-threshold-field>
       </div>
     `;
   }
@@ -524,7 +524,7 @@ export class RsCoverSection extends LitElement {
     const detailInRoom = detailId && this.selectedCovers.has(detailId);
 
     return html`
-      <rs-master-detail>
+      <rmc-master-detail>
         <div slot="master" class="master">
           <div class="block-title">${localize("covers.add_cover", l)}</div>
           <div class="master-list">
@@ -554,7 +554,7 @@ export class RsCoverSection extends LitElement {
                 </div>
               </div>`}
         </div>
-      </rs-master-detail>
+      </rmc-master-detail>
 
       ${hasAnySelected
         ? html`
@@ -580,9 +580,9 @@ export class RsCoverSection extends LitElement {
                     >
                       <ha-icon icon="mdi:calendar-clock"></ha-icon>
                       <span>${localize("covers.schedule_group_title", l)}</span>
-                      <rs-info-icon
+                      <rmc-info-icon
                         .text=${localize("covers.schedule_section_hint", l)}
-                      ></rs-info-icon>
+                      ></rmc-info-icon>
                       <ha-icon
                         class="chevron ${this._scheduleCollapsed ? "collapsed" : ""}"
                         icon="mdi:chevron-down"
@@ -590,7 +590,7 @@ export class RsCoverSection extends LitElement {
                     </div>
                     ${this._scheduleCollapsed
                       ? nothing
-                      : html`<rs-cover-schedule
+                      : html`<rmc-cover-schedule
                             .hass=${this.hass}
                             .schedules=${this.coverSchedules}
                             .selectorEntity=${this.coverScheduleSelectorEntity}
@@ -600,18 +600,18 @@ export class RsCoverSection extends LitElement {
                               this._emit("cover_schedules", e.detail.value)}
                             @cover-schedule-selector-changed=${(e: CustomEvent) =>
                               this._emit("cover_schedule_selector_entity", e.detail.value)}
-                          ></rs-cover-schedule>
+                          ></rmc-cover-schedule>
                           <div class="group-divider"></div>
-                          <rs-toggle-row
+                          <rmc-toggle-row
                             .label=${localize("covers.night_close", l)}
                             .hint=${localize("covers.night_close_hint", l)}
                             .checked=${this.nightClose}
                             @toggle-changed=${(e: CustomEvent) =>
                               this._emit("covers_night_close", e.detail)}
-                          ></rs-toggle-row>
+                          ></rmc-toggle-row>
                           ${this.nightClose
                             ? html`
-                                <rs-threshold-field
+                                <rmc-threshold-field
                                   .label=${localize("covers.night_position", l)}
                                   .hint=${localize("covers.night_position_hint", l)}
                                   .value=${this.nightPosition}
@@ -621,13 +621,13 @@ export class RsCoverSection extends LitElement {
                                   suffix="%"
                                   @value-changed=${(e: CustomEvent) =>
                                     this._emit("covers_night_position", e.detail)}
-                                ></rs-threshold-field>
+                                ></rmc-threshold-field>
                                 <ha-expansion-panel
                                   .header=${localize("covers.night_close_advanced", l)}
                                   outlined
                                 >
                                   <div class="field-row" style="padding:8px 0;">
-                                    <rs-threshold-field
+                                    <rmc-threshold-field
                                       .label=${localize("covers.night_close_elevation", l)}
                                       .hint=${localize("covers.night_close_elevation_hint", l)}
                                       .value=${this.nightCloseElevation}
@@ -637,8 +637,8 @@ export class RsCoverSection extends LitElement {
                                       suffix="°"
                                       @value-changed=${(e: CustomEvent) =>
                                         this._emit("covers_night_close_elevation", e.detail)}
-                                    ></rs-threshold-field>
-                                    <rs-threshold-field
+                                    ></rmc-threshold-field>
+                                    <rmc-threshold-field
                                       .label=${localize("covers.night_close_offset", l)}
                                       .hint=${localize("covers.night_close_offset_hint", l)}
                                       .value=${this.nightCloseOffsetMinutes}
@@ -648,7 +648,7 @@ export class RsCoverSection extends LitElement {
                                       suffix="min"
                                       @value-changed=${(e: CustomEvent) =>
                                         this._emit("covers_night_close_offset_minutes", e.detail)}
-                                    ></rs-threshold-field>
+                                    ></rmc-threshold-field>
                                   </div>
                                 </ha-expansion-panel>
                               `
@@ -670,7 +670,7 @@ export class RsCoverSection extends LitElement {
                     ${this._solarCollapsed
                       ? nothing
                       : html`<div class="field-row">
-                            <rs-threshold-field
+                            <rmc-threshold-field
                               .label=${localize("covers.deploy_threshold", l)}
                               .hint=${localize("covers.deploy_threshold_hint", l)}
                               .value=${this.deployThreshold}
@@ -680,8 +680,8 @@ export class RsCoverSection extends LitElement {
                               suffix="°C"
                               @value-changed=${(e: CustomEvent) =>
                                 this._emit("covers_deploy_threshold", e.detail)}
-                            ></rs-threshold-field>
-                            <rs-threshold-field
+                            ></rmc-threshold-field>
+                            <rmc-threshold-field
                               .label=${localize("covers.min_position", l)}
                               .hint=${localize("covers.min_position_hint", l)}
                               .value=${this.minPosition}
@@ -691,10 +691,10 @@ export class RsCoverSection extends LitElement {
                               suffix="%"
                               @value-changed=${(e: CustomEvent) =>
                                 this._emit("covers_min_position", e.detail)}
-                            ></rs-threshold-field>
+                            ></rmc-threshold-field>
                           </div>
                           <div class="field-row">
-                            <rs-threshold-field
+                            <rmc-threshold-field
                               .label=${localize("covers.override_minutes", l)}
                               .hint=${localize("covers.override_minutes_hint", l)}
                               .value=${this.overrideMinutes}
@@ -704,8 +704,8 @@ export class RsCoverSection extends LitElement {
                               suffix="min"
                               @value-changed=${(e: CustomEvent) =>
                                 this._emit("covers_override_minutes", e.detail)}
-                            ></rs-threshold-field>
-                            <rs-threshold-field
+                            ></rmc-threshold-field>
+                            <rmc-threshold-field
                               .label=${localize("covers.outdoor_min_temp", l)}
                               .hint=${localize("covers.outdoor_min_temp_hint", l)}
                               .value=${this.outdoorMinTemp ?? 10}
@@ -715,16 +715,16 @@ export class RsCoverSection extends LitElement {
                               suffix="°C"
                               @value-changed=${(e: CustomEvent) =>
                                 this._emit("covers_outdoor_min_temp", e.detail)}
-                            ></rs-threshold-field>
+                            ></rmc-threshold-field>
                           </div>
                           <div class="group-divider"></div>
-                          <rs-toggle-row
+                          <rmc-toggle-row
                             .label=${localize("covers.snap_deploy", l)}
                             .hint=${localize("covers.snap_deploy_hint", l)}
                             .checked=${this.snapDeploy}
                             @toggle-changed=${(e: CustomEvent) =>
                               this._emit("covers_snap_deploy", e.detail)}
-                          ></rs-toggle-row>`}
+                          ></rmc-toggle-row>`}
                   </div>
                 `
               : nothing}
@@ -797,6 +797,6 @@ export class RsCoverSection extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-covers-section": RsCoverSection;
+    "rmc-covers-section": RsCoverSection;
   }
 }

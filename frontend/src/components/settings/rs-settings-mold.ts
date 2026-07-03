@@ -9,7 +9,7 @@ import { localize } from "../../utils/localize";
 import { getSelectValue } from "../../utils/events";
 import { tempUnit, toDisplayDelta } from "../../utils/temperature";
 
-@customElement("rs-settings-mold")
+@customElement("rmc-settings-mold")
 export class RsSettingsMold extends RsSettingsBase {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: Boolean }) public moldDetectionEnabled = false;
@@ -171,6 +171,6 @@ export class RsSettingsMold extends RsSettingsBase {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-settings-mold": RsSettingsMold;
+    "rmc-settings-mold": RsSettingsMold;
   }
 }

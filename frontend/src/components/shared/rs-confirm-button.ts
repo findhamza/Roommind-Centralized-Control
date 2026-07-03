@@ -1,7 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
-@customElement("rs-confirm-button")
+@customElement("rmc-confirm-button")
 export class RsConfirmButton extends LitElement {
   @property({ type: String }) public label = "";
   @property({ type: String }) public confirmMessage = "";
@@ -67,6 +67,6 @@ export class RsConfirmButton extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-confirm-button": RsConfirmButton;
+    "rmc-confirm-button": RsConfirmButton;
   }
 }

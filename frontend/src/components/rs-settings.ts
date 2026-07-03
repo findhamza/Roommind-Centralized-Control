@@ -11,6 +11,7 @@ import type {
   RoomConfig,
   NotificationTarget,
   CompressorGroup,
+  PriorityZone,
 } from "../types";
 import { localize } from "../utils/localize";
 import { fireSaveStatus } from "../utils/events";
@@ -23,12 +24,13 @@ import "./settings/rs-settings-presence";
 import "./settings/rs-settings-vacation";
 import "./settings/rs-settings-valve";
 import "./settings/rs-settings-compressor";
+import "./settings/rs-settings-single-zone";
 import "./settings/rs-settings-mold";
 import "./settings/rs-settings-notifications";
 import "./settings/rs-settings-learning";
 import "./settings/rs-settings-reset";
 
-@customElement("rs-settings")
+@customElement("rmc-settings")
 export class RsSettings extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ attribute: false }) public rooms: Record<string, RoomConfig> = {};
@@ -65,6 +67,7 @@ export class RsSettings extends LitElement {
   @state() private _moldPreventionIntensity: "light" | "medium" | "strong" = "medium";
   @state() private _moldPreventionNotify = false;
   @state() private _compressorGroups: CompressorGroup[] = [];
+  @state() private _priorityZones: PriorityZone[] = [];
   @state() private _boostAppliedAt: Record<string, number> = {};
   @state() private _loaded = false;
 
@@ -83,7 +86,7 @@ export class RsSettings extends LitElement {
   private async _loadSettings() {
     try {
       const result = await this.hass.callWS<{ settings: GlobalSettings }>({
-        type: "roommind/settings/get",
+        type: "roommind_cc/settings/get",
       });
       const s = result.settings;
       this._groupByFloor = s.group_by_floor ?? false;
@@ -123,6 +126,7 @@ export class RsSettings extends LitElement {
       this._moldPreventionIntensity = s.mold_prevention_intensity ?? "medium";
       this._moldPreventionNotify = s.mold_prevention_notify_enabled ?? false;
       this._compressorGroups = s.compressor_groups ?? [];
+      this._priorityZones = s.priority_zones ?? [];
       this._boostAppliedAt = s.boost_applied_at ?? {};
     } catch (err) {
       // eslint-disable-next-line no-console
@@ -140,40 +144,40 @@ export class RsSettings extends LitElement {
     const l = this.hass.language;
 
     return html`
-      <rs-settings-panel
+      <rmc-settings-panel
         icon="mdi:power"
         .heading=${localize("settings.general_title", l)}
         .intro=${localize("settings.intro.general", l)}
       >
-        <rs-settings-general
+        <rmc-settings-general
           .hass=${this.hass}
           .groupByFloor=${this._groupByFloor}
           .climateControlActive=${this._climateControlActive}
           @setting-changed=${this._onSettingChanged}
-        ></rs-settings-general>
-      </rs-settings-panel>
+        ></rmc-settings-general>
+      </rmc-settings-panel>
 
-      <rs-settings-panel
+      <rmc-settings-panel
         icon="mdi:thermometer"
         .heading=${localize("settings.sensors_title", l)}
         .intro=${localize("settings.intro.sensors", l)}
       >
-        <rs-settings-sensors
+        <rmc-settings-sensors
           .hass=${this.hass}
           .outdoorTempSensor=${this._outdoorTempSensor}
           .outdoorHumiditySensor=${this._outdoorHumiditySensor}
           .weatherEntity=${this._weatherEntity}
           .outdoorUnavailableNotify=${this._outdoorUnavailableNotify}
           @setting-changed=${this._onSettingChanged}
-        ></rs-settings-sensors>
-      </rs-settings-panel>
+        ></rmc-settings-sensors>
+      </rmc-settings-panel>
 
-      <rs-settings-panel
+      <rmc-settings-panel
         icon="mdi:tune-variant"
         .heading=${localize("settings.control_title", l)}
         .intro=${localize("settings.intro.control", l)}
       >
-        <rs-settings-control
+        <rmc-settings-control
           .hass=${this.hass}
           .controlMode=${this._controlMode}
           .comfortWeight=${this._comfortWeight}
@@ -182,69 +186,82 @@ export class RsSettings extends LitElement {
           .predictionEnabled=${this._predictionEnabled}
           .scheduleOffAction=${this._scheduleOffAction}
           @setting-changed=${this._onSettingChanged}
-        ></rs-settings-control>
-      </rs-settings-panel>
+        ></rmc-settings-control>
+      </rmc-settings-panel>
 
-      <rs-settings-panel
+      <rmc-settings-panel
         icon="mdi:home-account"
         .heading=${localize("presence.title", l)}
         .intro=${localize("settings.intro.presence", l)}
       >
-        <rs-settings-presence
+        <rmc-settings-presence
           .hass=${this.hass}
           .presenceEnabled=${this._presenceEnabled}
           .presencePersons=${this._presencePersons}
           .presenceAwayAction=${this._presenceAwayAction}
           .presenceClearsOverride=${this._presenceClearsOverride}
           @setting-changed=${this._onSettingChanged}
-        ></rs-settings-presence>
-      </rs-settings-panel>
+        ></rmc-settings-presence>
+      </rmc-settings-panel>
 
-      <rs-settings-panel
+      <rmc-settings-panel
         icon="mdi:airplane"
         .heading=${localize("vacation.title", l)}
         .intro=${localize("settings.intro.vacation", l)}
       >
-        <rs-settings-vacation
+        <rmc-settings-vacation
           .hass=${this.hass}
           .vacationActive=${this._vacationActive}
           .vacationTemp=${this._vacationTemp}
           .vacationUntil=${this._vacationUntil}
           @setting-changed=${this._onSettingChanged}
-        ></rs-settings-vacation>
-      </rs-settings-panel>
+        ></rmc-settings-vacation>
+      </rmc-settings-panel>
 
-      <rs-settings-panel
+      <rmc-settings-panel
         icon="mdi:shield-refresh"
         .heading=${localize("valve_protection.title", l)}
         .intro=${localize("settings.intro.valve", l)}
       >
-        <rs-settings-valve
+        <rmc-settings-valve
           .hass=${this.hass}
           .valveProtectionEnabled=${this._valveProtectionEnabled}
           .valveProtectionInterval=${this._valveProtectionInterval}
           @setting-changed=${this._onSettingChanged}
-        ></rs-settings-valve>
-      </rs-settings-panel>
+        ></rmc-settings-valve>
+      </rmc-settings-panel>
 
-      <rs-settings-panel
+      <rmc-settings-panel
         icon="mdi:heat-pump-outline"
         .heading=${localize("compressor.title", l)}
         .intro=${localize("settings.intro.compressor", l)}
       >
-        <rs-settings-compressor
+        <rmc-settings-compressor
           .hass=${this.hass}
           .compressorGroups=${this._compressorGroups}
           @setting-changed=${this._onSettingChanged}
-        ></rs-settings-compressor>
-      </rs-settings-panel>
+        ></rmc-settings-compressor>
+      </rmc-settings-panel>
 
-      <rs-settings-panel
+      <rmc-settings-panel
+        icon="mdi:home-thermometer"
+        .heading=${localize("single_zone.title", l)}
+        .intro=${localize("settings.intro.single_zone", l)}
+      >
+        <rmc-settings-single-zone
+          .hass=${this.hass}
+          .rooms=${this.rooms}
+          .zones=${this._priorityZones}
+          @setting-changed=${this._onSettingChanged}
+        ></rmc-settings-single-zone>
+      </rmc-settings-panel>
+
+      <rmc-settings-panel
         icon="mdi:water-alert"
         .heading=${localize("mold.title", l)}
         .intro=${localize("settings.intro.mold", l)}
       >
-        <rs-settings-mold
+        <rmc-settings-mold
           .hass=${this.hass}
           .moldDetectionEnabled=${this._moldDetectionEnabled}
           .moldHumidityThreshold=${this._moldHumidityThreshold}
@@ -252,17 +269,17 @@ export class RsSettings extends LitElement {
           .moldPreventionEnabled=${this._moldPreventionEnabled}
           .moldPreventionIntensity=${this._moldPreventionIntensity}
           @setting-changed=${this._onSettingChanged}
-        ></rs-settings-mold>
-      </rs-settings-panel>
+        ></rmc-settings-mold>
+      </rmc-settings-panel>
 
-      <rs-settings-panel
+      <rmc-settings-panel
         icon="mdi:bell-outline"
         .heading=${localize("notifications.title", l)}
         .intro=${localize("settings.intro.notifications", l)}
         .badge=${localize("badge.beta", l)}
         .badgeHint=${localize("badge.beta_hint", l)}
       >
-        <rs-settings-notifications
+        <rmc-settings-notifications
           .hass=${this.hass}
           .notificationsEnabled=${this._moldNotificationsEnabled}
           .notificationTargets=${this._moldNotificationTargets}
@@ -270,15 +287,15 @@ export class RsSettings extends LitElement {
           .moldPreventionEnabled=${this._moldPreventionEnabled}
           .moldPreventionNotify=${this._moldPreventionNotify}
           @setting-changed=${this._onSettingChanged}
-        ></rs-settings-notifications>
-      </rs-settings-panel>
+        ></rmc-settings-notifications>
+      </rmc-settings-panel>
 
-      <rs-settings-panel
+      <rmc-settings-panel
         icon="mdi:brain"
         .heading=${localize("settings.learning_title", l)}
         .intro=${localize("settings.intro.learning", l)}
       >
-        <rs-settings-learning
+        <rmc-settings-learning
           .hass=${this.hass}
           .rooms=${this.rooms}
           .learningDisabledRooms=${this._learningDisabledRooms}
@@ -289,16 +306,16 @@ export class RsSettings extends LitElement {
           )}
           @setting-changed=${this._onSettingChanged}
           @boost-applied=${this._onBoostApplied}
-        ></rs-settings-learning>
-      </rs-settings-panel>
+        ></rmc-settings-learning>
+      </rmc-settings-panel>
 
-      <rs-settings-panel
+      <rmc-settings-panel
         icon="mdi:restart"
         .heading=${localize("settings.reset_title", l)}
         .intro=${localize("settings.intro.reset", l)}
       >
-        <rs-settings-reset .hass=${this.hass} .rooms=${this.rooms}></rs-settings-reset>
-      </rs-settings-panel>
+        <rmc-settings-reset .hass=${this.hass} .rooms=${this.rooms}></rmc-settings-reset>
+      </rmc-settings-panel>
     `;
   }
 
@@ -329,7 +346,7 @@ export class RsSettings extends LitElement {
 
     try {
       await this.hass.callWS({
-        type: "roommind/settings/save",
+        type: "roommind_cc/settings/save",
         group_by_floor: this._groupByFloor,
         climate_control_active: this._climateControlActive,
         learning_disabled_rooms: this._learningDisabledRooms,
@@ -356,6 +373,7 @@ export class RsSettings extends LitElement {
         valve_protection_enabled: this._valveProtectionEnabled,
         valve_protection_interval_days: this._valveProtectionInterval,
         compressor_groups: this._compressorGroups.filter((g) => g.members.length > 0),
+        priority_zones: this._priorityZones.filter((z) => z.id),
         mold_detection_enabled: this._moldDetectionEnabled,
         mold_humidity_threshold: this._moldHumidityThreshold,
         mold_sustained_minutes: this._moldSustainedMinutes,
@@ -393,6 +411,6 @@ export class RsSettings extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-settings": RsSettings;
+    "rmc-settings": RsSettings;
   }
 }

@@ -1,11 +1,13 @@
-# RoomMind
+# RoomMind CC
+
+> Fork of [RoomMind](https://github.com/findhamza/Roommind-Centralized-Control) with priority zones for single-thermostat systems. Uses its own domain (`roommind_cc`), storage, panel, and entities, so it installs **side by side** with upstream RoomMind without collisions.
 
 [![HACS Default](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.2%2B-blue.svg)](https://www.home-assistant.io/)
-[![License](https://img.shields.io/github/license/snazzybean/roommind)](https://github.com/snazzybean/roommind/blob/main/LICENSE)
-[![Tests](https://github.com/snazzybean/roommind/actions/workflows/ci.yml/badge.svg)](https://github.com/snazzybean/roommind/actions/workflows/ci.yml)
-![Coverage](https://raw.githubusercontent.com/snazzybean/roommind/python-coverage-comment-action-data/badge.svg)
-[![GitHub Release](https://img.shields.io/github/v/release/snazzybean/roommind)](https://github.com/snazzybean/roommind/releases/latest)
+[![License](https://img.shields.io/github/license/findhamza/Roommind-Centralized-Control)](https://github.com/findhamza/Roommind-Centralized-Control/blob/main/LICENSE)
+[![Tests](https://github.com/findhamza/Roommind-Centralized-Control/actions/workflows/ci.yml/badge.svg)](https://github.com/findhamza/Roommind-Centralized-Control/actions/workflows/ci.yml)
+![Coverage](https://raw.githubusercontent.com/findhamza/Roommind-Centralized-Control/python-coverage-comment-action-data/badge.svg)
+[![GitHub Release](https://img.shields.io/github/v/release/findhamza/Roommind-Centralized-Control)](https://github.com/findhamza/Roommind-Centralized-Control/releases/latest)
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y31VP2VK)
 
@@ -29,6 +31,7 @@
 - **Valve Protection** - Periodic cycling of idle TRV valves to prevent seizing and calcification.
 - **Heat Source Orchestration** - Rooms with both TRVs and ACs automatically route heating demand to the most efficient device based on temperature gap and outdoor conditions.
 - **Compressor Group Protection** - Define groups of climate devices sharing an outdoor compressor. Enforces minimum run and off times to prevent short-cycling.
+- **Priority Zones** - For homes where whole zones hang on one central thermostat with remote sensors only (one or several independent systems): bias each zone's thermostat setpoint to force runtime when a priority room (e.g. the bedroom) is uncomfortable, with hysteresis, main-area comfort bounds, anti-short-cycle protection, and learned response rates. See the [Priority Zones Guide](docs/single-zone-priority.md).
 - **Fan-only & Setback Idle Modes** - AC and heat pump devices can switch to fan-only or setback mode instead of turning off, keeping air circulation or low-load operation active.
 - **Per-Device Setpoint Mode** - Choose proportional (boost setpoint) or direct (exact target) control per device for optimal results with different hardware.
 - **Separate Heat/Cool Targets** - Independent comfort and eco temperatures for heating and cooling in auto mode, creating a natural dead-band.
@@ -40,18 +43,18 @@
 
 ## Installation
 
-[![Open your Home Assistant instance and open RoomMind inside HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=snazzybean&repository=roommind&category=integration)
+[![Open your Home Assistant instance and open RoomMind inside HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=findhamza&repository=Roommind-Centralized-Control&category=integration)
 
 ### HACS (Recommended)
 
 1. Open HACS in Home Assistant
-2. Search for "RoomMind" and install
+2. Add this repository as a custom repository (Integration), then install "RoomMind CC"
 3. Restart Home Assistant
 4. Go to **Settings > Devices & Services > Add Integration > RoomMind**
 
 ### Manual
 
-1. Copy `custom_components/roommind/` to your `config/custom_components/` directory
+1. Copy `custom_components/roommind_cc/` to your `config/custom_components/` directory
 2. Restart Home Assistant
 3. Go to **Settings > Devices & Services > Add Integration > RoomMind**
 
@@ -107,12 +110,12 @@ For a more detailed explanation of the `Priority` slider, device types, setpoint
 
 | Entity | Description |
 |--------|-------------|
-| `sensor.roommind_{area_id}_target_temp` | Current target temperature |
-| `sensor.roommind_{area_id}_mode` | Current mode: `idle`, `heating`, or `cooling` |
-| `climate.roommind_{area_id}_override` | Manual override climate entity (controllable from dashboards, automations, voice) |
-| `switch.roommind_vacation` | Global vacation mode toggle |
-| `switch.roommind_{area_id}_cover_auto` | Per-room automatic cover control toggle |
-| `binary_sensor.roommind_{area_id}_cover_paused` | On when manual cover override is detected |
+| `sensor.roommind_cc_{area_id}_target_temp` | Current target temperature |
+| `sensor.roommind_cc_{area_id}_mode` | Current mode: `idle`, `heating`, or `cooling` |
+| `climate.roommind_cc_cc_{area_id}_override` | Manual override climate entity (controllable from dashboards, automations, voice) |
+| `switch.roommind_cc_vacation` | Global vacation mode toggle |
+| `switch.roommind_cc_{area_id}_cover_auto` | Per-room automatic cover control toggle |
+| `binary_sensor.roommind_cc_{area_id}_cover_paused` | On when manual cover override is detected |
 
 These can be used in HA automations, dashboards, or other integrations.
 
@@ -136,7 +139,7 @@ No cloud services required - everything runs locally.
 
 ## Feedback & Contributing
 
-- 🐛 **Bug reports** - [Open an issue](https://github.com/snazzybean/roommind/issues/new?template=bug_report.yml)
-- 💡 **Feature requests & ideas** - [Post in Discussions](https://github.com/snazzybean/roommind/discussions/categories/feature-requests) so the community can vote and discuss
-- 🙋 **Questions & usage help** - [Ask in Q&A](https://github.com/snazzybean/roommind/discussions/categories/q-a)
-- 📣 **Announcements** - [Follow Announcements](https://github.com/snazzybean/roommind/discussions/categories/announcements)
+- 🐛 **Bug reports** - [Open an issue](https://github.com/findhamza/Roommind-Centralized-Control/issues/new?template=bug_report.yml)
+- 💡 **Feature requests & ideas** - [Post in Discussions](https://github.com/findhamza/Roommind-Centralized-Control/discussions/categories/feature-requests) so the community can vote and discuss
+- 🙋 **Questions & usage help** - [Ask in Q&A](https://github.com/findhamza/Roommind-Centralized-Control/discussions/categories/q-a)
+- 📣 **Announcements** - [Follow Announcements](https://github.com/findhamza/Roommind-Centralized-Control/discussions/categories/announcements)

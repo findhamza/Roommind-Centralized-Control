@@ -7,7 +7,7 @@ import random
 
 import pytest
 
-from custom_components.roommind.control.thermal_model import (
+from custom_components.roommind_cc.control.thermal_model import (
     RCModel,
     RoomModelManager,
     ThermalEKF,

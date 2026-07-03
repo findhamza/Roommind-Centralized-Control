@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 
-from custom_components.roommind.const import (
+from custom_components.roommind_cc.const import (
     build_override_live,
     is_override_active,
     is_override_suppressed,

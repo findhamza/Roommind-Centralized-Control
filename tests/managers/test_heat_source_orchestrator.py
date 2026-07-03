@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from custom_components.roommind.const import (
+from custom_components.roommind_cc.const import (
     DEFAULT_HEAT_SOURCE_AC_MIN_OUTDOOR,
     DEFAULT_HEAT_SOURCE_OUTDOOR_THRESHOLD,
     DEFAULT_HEAT_SOURCE_PRIMARY_DELTA,
@@ -13,7 +13,7 @@ from custom_components.roommind.const import (
     MODE_HEATING,
     MODE_IDLE,
 )
-from custom_components.roommind.managers.heat_source_orchestrator import (
+from custom_components.roommind_cc.managers.heat_source_orchestrator import (
     HeatSourcePlan,
     evaluate_heat_sources,
 )

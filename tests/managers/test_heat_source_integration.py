@@ -12,12 +12,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.roommind.coordinator import RoomMindCoordinator
-from custom_components.roommind.managers.heat_source_orchestrator import (
+from custom_components.roommind_cc.coordinator import RoomMindCoordinator
+from custom_components.roommind_cc.managers.heat_source_orchestrator import (
     DeviceCommand,
     HeatSourcePlan,
 )
-from custom_components.roommind.store import RoomMindStore
+from custom_components.roommind_cc.store import RoomMindStore
 
 # ---------------------------------------------------------------------------
 # Room template with both TRV and AC for heat source orchestration
@@ -132,7 +132,7 @@ def real_store(hass):
 
 @pytest.fixture
 def coordinator(hass, mock_config_entry, real_store):
-    hass.data = {"roommind": {"store": real_store}}
+    hass.data = {"roommind_cc": {"store": real_store}}
     hass.services.async_call = AsyncMock()
     hass.states.get = MagicMock(side_effect=_make_hass_states())
     hass.config.latitude = 50.0
@@ -345,7 +345,7 @@ class TestHeatSourceIntegration:
         hass.states.get = MagicMock(side_effect=states_after_plan)
 
         with patch(
-            "custom_components.roommind.coordinator.evaluate_heat_sources",
+            "custom_components.roommind_cc.coordinator.evaluate_heat_sources",
             return_value=controlled_plan,
         ):
             await coordinator._async_update_data()
@@ -368,7 +368,7 @@ class TestHeatSourceIntegration:
         hass.states.get = MagicMock(side_effect=states_after_plan)
         with (
             patch(
-                "custom_components.roommind.coordinator.evaluate_heat_sources",
+                "custom_components.roommind_cc.coordinator.evaluate_heat_sources",
                 return_value=controlled_plan,
             ),
             patch.object(ekf_mgr, "process", side_effect=capture_process),
@@ -499,7 +499,7 @@ class TestHeatSourceIntegration:
         coordinator._mode_on_since["living_room"] = coordinator._mode_on_since.get("living_room", 0) - 4000
         hass.states.get = MagicMock(side_effect=_make_hass_states(temp="20.5", outdoor_temp="10.0"))
         with patch(
-            "custom_components.roommind.coordinator.evaluate_heat_sources",
+            "custom_components.roommind_cc.coordinator.evaluate_heat_sources",
             return_value=None,
         ):
             await coordinator._async_update_data()

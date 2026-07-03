@@ -1,0 +1,18 @@
+{
+  "domain": "roommind_cc",
+  "name": "RoomMind CC",
+  "codeowners": [
+    "@findhamza"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "http",
+    "frontend"
+  ],
+  "documentation": "https://github.com/findhamza/Roommind-Centralized-Control",
+  "integration_type": "hub",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/findhamza/Roommind-Centralized-Control/issues",
+  "requirements": [],
+  "version": "1.7.4"
+}

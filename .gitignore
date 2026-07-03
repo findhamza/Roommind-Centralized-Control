@@ -210,7 +210,7 @@ __marimo__/
 # Frontend
 frontend/node_modules/
 frontend/dist/
-custom_components/roommind/frontend/roommind-panel.js
+custom_components/roommind_cc/frontend/roommind-cc-panel.js
 
 # IDE
 .idea/

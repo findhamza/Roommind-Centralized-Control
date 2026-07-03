@@ -9,7 +9,7 @@ import type { HomeAssistant, NotificationTarget } from "../../types";
 import { localize } from "../../utils/localize";
 import { getSelectValue } from "../../utils/events";
 
-@customElement("rs-settings-notifications")
+@customElement("rmc-settings-notifications")
 export class RsSettingsNotifications extends RsSettingsBase {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: Boolean }) public notificationsEnabled = true;
@@ -248,6 +248,6 @@ export class RsSettingsNotifications extends RsSettingsBase {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-settings-notifications": RsSettingsNotifications;
+    "rmc-settings-notifications": RsSettingsNotifications;
   }
 }

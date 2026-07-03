@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.roommind.const import HISTORY_WRITE_CYCLES
-from custom_components.roommind.managers.cover_manager import compute_shading_factor
+from custom_components.roommind_cc.const import HISTORY_WRITE_CYCLES
+from custom_components.roommind_cc.managers.cover_manager import compute_shading_factor
 
 from .conftest import ROOM_LIVING, make_hass_states, setup_room
 
@@ -325,7 +325,7 @@ class TestCoverIntegration:
 
         # Mock solar computation to return a known positive value (time-independent)
         with patch(
-            "custom_components.roommind.coordinator.compute_q_solar_norm",
+            "custom_components.roommind_cc.coordinator.compute_q_solar_norm",
             return_value=0.8,
         ):
             await coordinator._async_update_data()
@@ -390,7 +390,7 @@ class TestCoverIntegration:
         )
 
         with patch(
-            "custom_components.roommind.coordinator.compute_q_solar_norm",
+            "custom_components.roommind_cc.coordinator.compute_q_solar_norm",
             return_value=0.8,
         ):
             await coordinator._async_update_data()
@@ -415,7 +415,7 @@ class TestCoverIntegration:
 
         # High solar irradiance causing overheating despite cold outdoor temp
         with patch(
-            "custom_components.roommind.coordinator.compute_q_solar_norm",
+            "custom_components.roommind_cc.coordinator.compute_q_solar_norm",
             return_value=0.9,
         ):
             await coordinator._async_update_data()
@@ -448,11 +448,11 @@ class TestCoverIntegration:
         )
         with (
             patch(
-                "custom_components.roommind.coordinator.compute_q_solar_norm",
+                "custom_components.roommind_cc.coordinator.compute_q_solar_norm",
                 return_value=0.0,
             ),
             patch(
-                "custom_components.roommind.managers.cover_orchestrator.solar_elevation",
+                "custom_components.roommind_cc.managers.cover_orchestrator.solar_elevation",
                 return_value=-5.0,
             ),
         ):
@@ -476,11 +476,11 @@ class TestCoverIntegration:
         )
         with (
             patch(
-                "custom_components.roommind.coordinator.compute_q_solar_norm",
+                "custom_components.roommind_cc.coordinator.compute_q_solar_norm",
                 return_value=0.05,
             ),
             patch(
-                "custom_components.roommind.managers.cover_orchestrator.solar_elevation",
+                "custom_components.roommind_cc.managers.cover_orchestrator.solar_elevation",
                 return_value=3.0,
             ),
             patch.object(

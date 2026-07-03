@@ -10,7 +10,7 @@ import "./analytics/rs-analytics-toolbar";
 import "./analytics/rs-analytics-chart";
 import "./analytics/rs-analytics-model";
 
-@customElement("rs-analytics")
+@customElement("rmc-analytics")
 export class RsAnalytics extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: Object }) public rooms: Record<string, RoomConfig> = {};
@@ -75,7 +75,7 @@ export class RsAnalytics extends LitElement {
     const l = this.hass.language;
 
     return html`
-      <rs-analytics-toolbar
+      <rmc-analytics-toolbar
         .hass=${this.hass}
         .rooms=${this.rooms}
         .selectedRoom=${this._selectedRoom}
@@ -86,12 +86,12 @@ export class RsAnalytics extends LitElement {
         .language=${l}
         @room-selected=${this._onRoomSelected}
         @range-changed=${this._onRangeChanged}
-      ></rs-analytics-toolbar>
+      ></rmc-analytics-toolbar>
       ${this._selectedRoom
         ? this._loading
           ? html`<div class="loading">${localize("panel.loading", l)}</div>`
           : html`
-              <rs-analytics-chart
+              <rmc-analytics-chart
                 .hass=${this.hass}
                 .data=${this._data}
                 .rangeStart=${this._rangeStart}
@@ -99,13 +99,13 @@ export class RsAnalytics extends LitElement {
                 .chartAnchor=${this._chartAnchor}
                 .language=${l}
                 .isOutdoor=${this.rooms[this._selectedRoom]?.is_outdoor ?? false}
-              ></rs-analytics-chart>
+              ></rmc-analytics-chart>
               ${!this.rooms[this._selectedRoom]?.is_outdoor
-                ? html` <rs-analytics-model
+                ? html` <rmc-analytics-model
                     .hass=${this.hass}
                     .data=${this._data}
                     .language=${l}
-                  ></rs-analytics-model>`
+                  ></rmc-analytics-model>`
                 : nothing}
             `
         : html`
@@ -141,7 +141,7 @@ export class RsAnalytics extends LitElement {
 
   private _buildWsParams(): Record<string, unknown> {
     return {
-      type: "roommind/analytics/get",
+      type: "roommind_cc/analytics/get",
       area_id: this._selectedRoom,
       start_ts: this._rangeStart / 1000,
       end_ts: this._rangeEnd / 1000,
@@ -213,6 +213,6 @@ export class RsAnalytics extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-analytics": RsAnalytics;
+    "rmc-analytics": RsAnalytics;
   }
 }

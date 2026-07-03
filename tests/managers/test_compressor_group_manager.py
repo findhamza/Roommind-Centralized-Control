@@ -2,7 +2,7 @@
 
 import time
 
-from custom_components.roommind.managers.compressor_group_manager import (
+from custom_components.roommind_cc.managers.compressor_group_manager import (
     CompressorGroupManager,
     resolve_master_action,
 )

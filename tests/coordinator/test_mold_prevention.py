@@ -21,7 +21,7 @@ class TestMoldRiskDetection:
     async def test_mold_detection_disabled_by_default(self, hass, mock_config_entry):
         """When mold detection is not enabled, mold_risk_level should be 'ok'."""
         store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(humidity="80.0"),
         )
@@ -46,7 +46,7 @@ class TestMoldRiskDetection:
             "mold_detection_enabled": True,
             "outdoor_temp_sensor": "sensor.outdoor_temp",
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         # 18degC, 75% RH, 0degC outside -> should be critical
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
@@ -77,7 +77,7 @@ class TestMoldRiskDetection:
             "mold_prevention_intensity": "medium",
             "outdoor_temp_sensor": "sensor.outdoor_temp",
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         # High mold risk conditions
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
@@ -109,7 +109,7 @@ class TestMoldRiskDetection:
             "mold_prevention_intensity": "light",
             "outdoor_temp_sensor": "sensor.outdoor_temp",
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
                 humidity="75.0",
@@ -138,7 +138,7 @@ class TestMoldRiskDetection:
             "mold_detection_enabled": True,
             "outdoor_temp_sensor": "sensor.outdoor_temp",
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
                 humidity=None,
@@ -162,7 +162,7 @@ class TestMoldRiskDetection:
     ):
         """Mold risk fields should always be present in room state."""
         store = _make_store_mock({"living_room_abc12345": SAMPLE_ROOM})
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(side_effect=make_mock_states_get())
         hass.services.async_call = AsyncMock()
 
@@ -188,7 +188,7 @@ class TestMoldRiskDetection:
             "mold_prevention_intensity": "strong",
             "outdoor_temp_sensor": "sensor.outdoor_temp",
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
                 humidity="75.0",
@@ -221,7 +221,7 @@ class TestMoldRiskDetection:
             ],
             "outdoor_temp_sensor": "sensor.outdoor_temp",
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
                 humidity="75.0",
@@ -258,7 +258,7 @@ class TestMoldRiskDetection:
             ],
             "outdoor_temp_sensor": "sensor.outdoor_temp",
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(
                 humidity="75.0",
@@ -269,7 +269,7 @@ class TestMoldRiskDetection:
 
         coordinator = _create_coordinator(hass, mock_config_entry)
         with patch(
-            "custom_components.roommind.coordinator._get_area_name",
+            "custom_components.roommind_cc.coordinator._get_area_name",
             return_value="Living Room",
         ):
             await coordinator._async_update_data()
@@ -290,7 +290,7 @@ class TestMoldRiskDetection:
             "mold_prevention_intensity": "medium",
             "outdoor_temp_sensor": "sensor.outdoor_temp",
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         hass.services.async_call = AsyncMock()
 
         coordinator = _create_coordinator(hass, mock_config_entry)
@@ -331,7 +331,7 @@ class TestMoldRiskDetection:
             "mold_prevention_intensity": "medium",
             "outdoor_temp_sensor": "sensor.outdoor_temp",
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         # Conditions that produce WARNING (surface RH 70-80%) but room humidity below threshold
         # 20degC, 60% RH, 5degC outside -> surface ~16degC, surface RH ~76% (WARNING)
         hass.states.get = MagicMock(
@@ -363,7 +363,7 @@ class TestMoldRiskDetection:
             "mold_detection_enabled": True,
             # No outdoor_temp_sensor
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         # 70% room humidity -> fallback = 80% surface RH -> critical
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(humidity="70.0"),
@@ -389,7 +389,7 @@ class TestMoldRiskDetection:
             "presence_persons": ["person.kevin"],
             "presence_away_action": "off",
         }
-        hass.data = {"roommind": {"store": store}}
+        hass.data = {"roommind_cc": {"store": store}}
         # Nobody home + mold risk conditions
         hass.states.get = MagicMock(
             side_effect=make_mock_states_get(

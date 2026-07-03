@@ -7,7 +7,7 @@ import { customElement, property } from "lit/decorators.js";
 import type { HomeAssistant } from "../../types";
 import { localize } from "../../utils/localize";
 
-@customElement("rs-settings-valve")
+@customElement("rmc-settings-valve")
 export class RsSettingsValve extends RsSettingsBase {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: Boolean }) public valveProtectionEnabled = false;
@@ -59,6 +59,6 @@ export class RsSettingsValve extends RsSettingsBase {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-settings-valve": RsSettingsValve;
+    "rmc-settings-valve": RsSettingsValve;
   }
 }

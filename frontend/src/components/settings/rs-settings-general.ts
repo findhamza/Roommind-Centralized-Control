@@ -7,7 +7,7 @@ import { customElement, property } from "lit/decorators.js";
 import type { HomeAssistant } from "../../types";
 import { localize } from "../../utils/localize";
 
-@customElement("rs-settings-general")
+@customElement("rmc-settings-general")
 export class RsSettingsGeneral extends RsSettingsBase {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: Boolean }) public groupByFloor = false;
@@ -57,6 +57,6 @@ export class RsSettingsGeneral extends RsSettingsBase {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-settings-general": RsSettingsGeneral;
+    "rmc-settings-general": RsSettingsGeneral;
   }
 }

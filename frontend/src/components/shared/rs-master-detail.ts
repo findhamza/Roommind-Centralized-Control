@@ -1,7 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
-@customElement("rs-master-detail")
+@customElement("rmc-master-detail")
 export class RsMasterDetail extends LitElement {
   @property({ type: String }) public masterWidth = "260px";
   @property({ type: Number }) public breakpoint = 720;
@@ -53,6 +53,6 @@ export class RsMasterDetail extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-master-detail": RsMasterDetail;
+    "rmc-master-detail": RsMasterDetail;
   }
 }

@@ -1,7 +1,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 
-@customElement("rs-info-icon")
+@customElement("rmc-info-icon")
 export class RsInfoIcon extends LitElement {
   @property({ type: String }) public text = "";
   @property({ type: String }) public icon = "mdi:information-outline";
@@ -200,6 +200,6 @@ export class RsInfoIcon extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-info-icon": RsInfoIcon;
+    "rmc-info-icon": RsInfoIcon;
   }
 }

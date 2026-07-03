@@ -6,8 +6,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.roommind.const import EKF_UPDATE_MIN_DT
-from custom_components.roommind.managers.ekf_training_manager import EkfTrainingManager
+from custom_components.roommind_cc.const import EKF_UPDATE_MIN_DT
+from custom_components.roommind_cc.managers.ekf_training_manager import EkfTrainingManager
 
 
 @pytest.fixture

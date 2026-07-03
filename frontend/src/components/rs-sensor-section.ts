@@ -9,7 +9,7 @@ import { inputStyles } from "../styles/input-styles";
 
 type SensorKind = "temp" | "humidity" | "occupancy" | "window";
 
-@customElement("rs-sensor-section")
+@customElement("rmc-sensor-section")
 export class RsSensorSection extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ attribute: false }) public area!: HassArea;
@@ -918,6 +918,6 @@ export class RsSensorSection extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-sensor-section": RsSensorSection;
+    "rmc-sensor-section": RsSensorSection;
   }
 }

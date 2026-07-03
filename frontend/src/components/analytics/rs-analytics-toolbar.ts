@@ -10,7 +10,7 @@ import { buildCsvString, downloadString, buildExportFilename } from "../../utils
 import { copyToClipboard } from "../../utils/clipboard";
 import { inputStyles } from "../../styles/input-styles";
 
-@customElement("rs-analytics-toolbar")
+@customElement("rmc-analytics-toolbar")
 export class RsAnalyticsToolbar extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ attribute: false }) public rooms: Record<string, RoomConfig> = {};
@@ -264,10 +264,10 @@ export class RsAnalyticsToolbar extends LitElement {
     this._openDropdown = null;
     try {
       const result = await this.hass.callWS<Record<string, unknown>>({
-        type: "roommind/diagnostics/get",
+        type: "roommind_cc/diagnostics/get",
       });
       const json = JSON.stringify(result, null, 2);
-      downloadString(json, "roommind_diagnostics.json", "application/json");
+      downloadString(json, "roommind_cc_diagnostics.json", "application/json");
     } catch (err) {
       // eslint-disable-next-line no-console
       console.warn("[RoomMind] diagnostics export failed:", err);
@@ -290,7 +290,7 @@ export class RsAnalyticsToolbar extends LitElement {
     this._openDropdown = null;
     try {
       const result = await this.hass.callWS<Record<string, unknown>>({
-        type: "roommind/diagnostics/get",
+        type: "roommind_cc/diagnostics/get",
       });
       const json = JSON.stringify(result, null, 2);
       copyToClipboard(json);
@@ -514,6 +514,6 @@ export class RsAnalyticsToolbar extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "rs-analytics-toolbar": RsAnalyticsToolbar;
+    "rmc-analytics-toolbar": RsAnalyticsToolbar;
   }
 }

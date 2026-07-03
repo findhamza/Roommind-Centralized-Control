@@ -7,8 +7,8 @@ from unittest.mock import patch
 
 import pytest
 
-from custom_components.roommind.const import MODE_HEATING, MODE_IDLE
-from custom_components.roommind.managers.residual_heat_tracker import ResidualHeatTracker
+from custom_components.roommind_cc.const import MODE_HEATING, MODE_IDLE
+from custom_components.roommind_cc.managers.residual_heat_tracker import ResidualHeatTracker
 
 # ---------------------------------------------------------------------------
 # update – cleanup branch (lines 40-43)
@@ -129,7 +129,7 @@ def test_get_q_residual_empty_system_type_returns_zero():
     assert result == 0.0
 
 
-@patch("custom_components.roommind.managers.residual_heat_tracker.time")
+@patch("custom_components.roommind_cc.managers.residual_heat_tracker.time")
 def test_get_q_residual_computes_correctly_radiator(mock_time):
     """Verify computed residual heat matches compute_residual_heat for radiator."""
     now = 2000.0
@@ -157,7 +157,7 @@ def test_get_q_residual_computes_correctly_radiator(mock_time):
     assert result == pytest.approx(0.03542, abs=1e-3)
 
 
-@patch("custom_components.roommind.managers.residual_heat_tracker.time")
+@patch("custom_components.roommind_cc.managers.residual_heat_tracker.time")
 def test_get_q_residual_computes_correctly_underfloor(mock_time):
     """Verify computed residual heat matches compute_residual_heat for underfloor."""
     now = 5000.0
@@ -183,7 +183,7 @@ def test_get_q_residual_computes_correctly_underfloor(mock_time):
     assert result == pytest.approx(0.4814, abs=1e-2)
 
 
-@patch("custom_components.roommind.managers.residual_heat_tracker.time")
+@patch("custom_components.roommind_cc.managers.residual_heat_tracker.time")
 def test_get_q_residual_no_on_since_uses_off_since_as_fallback(mock_time):
     """When _on_since is missing, heat_dur should be 0 (off_since - off_since)."""
     now = 2000.0
@@ -208,7 +208,7 @@ def test_get_q_residual_no_on_since_uses_off_since_as_fallback(mock_time):
 # ---------------------------------------------------------------------------
 
 
-@patch("custom_components.roommind.managers.residual_heat_tracker.time")
+@patch("custom_components.roommind_cc.managers.residual_heat_tracker.time")
 def test_update_heating_mode_records_on_since(mock_time):
     """Starting heating (from non-heating) records _on_since."""
     mock_time.time.return_value = 5000.0
@@ -223,7 +223,7 @@ def test_update_heating_mode_records_on_since(mock_time):
     assert tracker._off_power["room1"] == 0.6
 
 
-@patch("custom_components.roommind.managers.residual_heat_tracker.time")
+@patch("custom_components.roommind_cc.managers.residual_heat_tracker.time")
 def test_update_heating_continued_does_not_reset_on_since(mock_time):
     """Continued heating (previous was also HEATING) does not overwrite _on_since."""
     tracker = ResidualHeatTracker()
@@ -238,7 +238,7 @@ def test_update_heating_continued_does_not_reset_on_since(mock_time):
     assert tracker._off_power["room1"] == 0.8
 
 
-@patch("custom_components.roommind.managers.residual_heat_tracker.time")
+@patch("custom_components.roommind_cc.managers.residual_heat_tracker.time")
 def test_update_heating_to_idle_transition(mock_time):
     """Transitioning from HEATING to IDLE records _off_since."""
     tracker = ResidualHeatTracker()
@@ -256,7 +256,7 @@ def test_update_heating_to_idle_transition(mock_time):
     assert tracker._on_since["room1"] == 1000.0
 
 
-@patch("custom_components.roommind.managers.residual_heat_tracker.time")
+@patch("custom_components.roommind_cc.managers.residual_heat_tracker.time")
 def test_update_idle_to_heating_clears_off_since(mock_time):
     """Re-starting heating after idle clears _off_since and sets new _on_since."""
     tracker = ResidualHeatTracker()
