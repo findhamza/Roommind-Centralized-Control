@@ -202,6 +202,68 @@ class TestSingleZoneCoordinatorWiring:
         assert kwargs["ekf_mode"] == "idle"
 
     @pytest.mark.asyncio
+    async def test_zone_room_mode_reflects_thermostat_cooling(self, hass, mock_config_entry):
+        """A sensor-only zone room shows 'cooling' when the thermostat is cooling."""
+        attrs = _thermostat_attrs(hvac_action="cooling")
+        _setup(hass, states_get=_states_get(thermostat_attrs=attrs))
+        coordinator = _create_coordinator(hass, mock_config_entry)
+        await coordinator._async_update_data()
+
+        rs = coordinator.rooms["bedroom_abc"]
+        assert rs["mode"] == "cooling"
+        assert rs["zone_id"] == "down"
+        assert rs["zone_priority_active"] is True
+        assert rs["zone_priority_direction"] == "cool"
+
+    @pytest.mark.asyncio
+    async def test_zone_room_mode_idle_when_thermostat_idle(self, hass, mock_config_entry):
+        """Zone room stays idle when the thermostat isn't actively conditioning."""
+        # Bedroom satisfied so no forcing; thermostat hvac_action idle
+        _setup(hass, states_get=_states_get(bedroom_temp="23.0"))
+        coordinator = _create_coordinator(hass, mock_config_entry)
+        await coordinator._async_update_data()
+
+        rs = coordinator.rooms["bedroom_abc"]
+        assert rs["mode"] == "idle"
+        assert rs["zone_id"] == "down"
+        assert rs["zone_priority_active"] is False
+
+    @pytest.mark.asyncio
+    async def test_zone_room_with_own_device_not_overridden(self, hass, mock_config_entry):
+        """The zone mode override is skipped for a room that owns a device.
+
+        Bedroom sits in its idle band (22°C, between heat 18 and cool 23) so its
+        own controller is idle. The thermostat is cooling its area on its own.
+        A sensor-only room would be shown as cooling; a device-owning room keeps
+        its own (idle) mode.
+        """
+        room = {
+            **BEDROOM,
+            "devices": [{"entity_id": "climate.bedroom_ac", "type": "ac", "role": "auto"}],
+            "acs": ["climate.bedroom_ac"],
+        }
+        store = _make_store_mock({"bedroom_abc": room}, dict(SINGLE_ZONE_SETTINGS))
+        attrs = _thermostat_attrs(hvac_action="cooling")
+
+        def states_get(eid):
+            if eid == "climate.bedroom_ac":
+                s = MagicMock()
+                s.state = "off"
+                s.attributes = {"hvac_modes": ["off", "cool"], "hvac_action": "off"}
+                return s
+            return _states_get(bedroom_temp="22.0", thermostat_attrs=attrs)(eid)
+
+        hass.states.get = MagicMock(side_effect=states_get)
+        hass.services.async_call = AsyncMock()
+        hass.data = {"roommind_cc": {"store": store}}
+        coordinator = _create_coordinator(hass, mock_config_entry)
+        await coordinator._async_update_data()
+
+        # Device-owning room → zone override skipped → keeps its own idle mode
+        assert coordinator.rooms["bedroom_abc"]["mode"] == "idle"
+        assert coordinator.rooms["bedroom_abc"]["zone_id"] == "down"
+
+    @pytest.mark.asyncio
     async def test_thermostat_in_controlled_room_is_conflict(self, hass, mock_config_entry):
         """The central thermostat must not also be a controlled room device."""
         conflicted_room = {

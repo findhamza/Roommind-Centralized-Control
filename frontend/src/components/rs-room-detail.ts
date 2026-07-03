@@ -11,6 +11,7 @@ import type {
   DeviceConfig,
   DeviceType,
   DeviceRole,
+  PriorityZone,
 } from "../types";
 import "./rs-hero-status";
 import "./rs-climate-mode-selector";
@@ -22,6 +23,7 @@ import "./rs-override-section";
 import "./rs-presence-section";
 import "./rs-covers-section";
 import "./rs-heat-source-section";
+import "./rs-room-zone-section";
 import "../components/shared/rs-toggle-row";
 import "../components/shared/rs-toggle-card";
 import "../components/shared/rs-edit-dialog";
@@ -46,6 +48,7 @@ export class RsRoomDetail extends LitElement {
   @property({ type: Boolean }) public climateControlActive = true;
 
   @property({ type: Boolean }) public valveProtectionEnabled = false;
+  @property({ attribute: false }) public priorityZones: PriorityZone[] = [];
 
   @state() private _devices: DeviceConfig[] = [];
   @state() private _selectedTempSensor = "";
@@ -578,6 +581,22 @@ export class RsRoomDetail extends LitElement {
                   .acMinOutdoor=${this._heatSourceAcMinOutdoor}
                   @setting-changed=${this._onHeatSourceSettingChanged}
                 ></rmc-heat-source-section>
+              </rmc-section-card>`
+            : nothing}
+          ${!this._isOutdoor
+            ? html`<rmc-section-card
+                icon="mdi:home-thermometer"
+                .heading=${localize("room.section.zone", this.hass.language)}
+              >
+                <rmc-info-icon
+                  slot="header-extras"
+                  .text=${localize("room.zone.info", this.hass.language)}
+                ></rmc-info-icon>
+                <rmc-room-zone-section
+                  .hass=${this.hass}
+                  .areaId=${this.area.area_id}
+                  .zones=${this.priorityZones}
+                ></rmc-room-zone-section>
               </rmc-section-card>`
             : nothing}
 

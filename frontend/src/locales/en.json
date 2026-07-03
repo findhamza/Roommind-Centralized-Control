@@ -599,5 +599,20 @@
   "single_zone.zone_name": "Zone name",
   "single_zone.delete_zone": "Delete zone",
   "single_zone.delete_zone_confirm": "Delete priority zone \"{name}\"? An active forcing session is ended and the thermostat setpoint restored.",
-  "single_zone.room_in_other_zone": "(in {zone})"
+  "single_zone.room_in_other_zone": "(in {zone})",
+  "card.priority_cooling": "Priority cooling",
+  "card.priority_heating": "Priority heating",
+  "room.section.zone": "Priority Zone",
+  "room.zone.info": "Assign this room to a priority zone (defined in Settings → Priority Zones). Marking it a priority room lets it force the zone's thermostat to run when this room is uncomfortable.",
+  "room.zone.no_zones": "No priority zones yet. Create one in Settings → Priority Zones, then assign this room here.",
+  "room.zone.assign": "Zone",
+  "room.zone.assign_hint": "The HVAC zone that conditions this room. A room can belong to only one zone.",
+  "room.zone.none": "Not in a zone",
+  "room.zone.priority": "Priority room",
+  "room.zone.priority_hint": "Force the zone's thermostat to run when this room drifts past its comfort target.",
+  "room.zone.condition": "Active when",
+  "single_zone.rooms_label": "Rooms in this zone",
+  "single_zone.rooms_empty": "No rooms assigned yet.",
+  "single_zone.rooms_hint": "Assign rooms and mark priority rooms (★) from each room's page → Priority Zone.",
+  "single_zone.advanced": "Advanced tuning"
 }

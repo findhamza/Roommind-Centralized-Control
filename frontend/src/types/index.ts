@@ -53,6 +53,9 @@ export interface RoomLiveData {
   active_cover_schedule_index: number;
   active_heat_sources: string | null;
   learning_paused_reason: "outdoor_unavailable" | null;
+  zone_id: string | null;
+  zone_priority_active: boolean;
+  zone_priority_direction: "cool" | "heat" | null;
 }
 
 export type DeviceType = "trv" | "ac";

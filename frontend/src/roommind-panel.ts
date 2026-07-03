@@ -1,7 +1,8 @@
 import { LitElement, html, css, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import type { HomeAssistant, HassArea, RoomConfig } from "./types";
+import type { HomeAssistant, HassArea, RoomConfig, PriorityZone } from "./types";
 import { getEntitiesForArea } from "./utils/room-state";
+import { fireSaveStatus } from "./utils/events";
 import { loadHaElements } from "./load-ha-elements";
 import { localize } from "./utils/localize";
 import { mdiEyeOff } from "./utils/icons";
@@ -37,6 +38,7 @@ export class RoomMindPanel extends LitElement {
 
   @state() private _activeTab: TabId = "areas";
   @state() private _rooms: Record<string, RoomConfig> = {};
+  @state() private _priorityZones: PriorityZone[] = [];
   @state() private _roomsLoaded = false;
   @state() private _selectedAreaId: string | null = null;
   @state() private _analyticsRoom = "";
@@ -474,8 +476,10 @@ export class RoomMindPanel extends LitElement {
             .presencePersons=${this._presencePersons}
             .climateControlActive=${this._climateControlActive}
             .valveProtectionEnabled=${this._valveProtectionEnabled}
+            .priorityZones=${this._priorityZones}
             @back-clicked=${this._onBackFromDetail}
             @room-updated=${this._onRoomUpdated}
+            @priority-zones-changed=${this._onPriorityZonesChanged}
           ></rmc-room-detail>
         `;
       }
@@ -756,10 +760,12 @@ export class RoomMindPanel extends LitElement {
         presence_away_action: "eco" | "off";
         schedule_off_action: "eco" | "off";
         valve_protection_enabled: boolean;
+        priority_zones: PriorityZone[];
       }>({
         type: "roommind_cc/rooms/list",
       });
       this._rooms = result.rooms;
+      this._priorityZones = result.priority_zones ?? [];
       this._vacationActive = result.vacation_active ?? false;
       this._vacationTemp = result.vacation_temp ?? null;
       this._vacationUntil = result.vacation_until ?? null;
@@ -924,6 +930,25 @@ export class RoomMindPanel extends LitElement {
 
   private _onRoomUpdated() {
     this._loadRooms();
+  }
+
+  private async _onPriorityZonesChanged(e: CustomEvent<{ zones: PriorityZone[] }>) {
+    e.stopPropagation();
+    const zones = e.detail.zones;
+    this._priorityZones = zones; // optimistic: keep the room view in sync
+    fireSaveStatus(this, "saving");
+    try {
+      await this.hass.callWS({
+        type: "roommind_cc/settings/save",
+        priority_zones: zones,
+      });
+      fireSaveStatus(this, "saved");
+      this._loadRooms();
+    } catch (err) {
+      fireSaveStatus(this, "error");
+      // eslint-disable-next-line no-console
+      console.debug("[RoomMind] savePriorityZones:", err);
+    }
   }
 
   private _onSaveStatus = (e: CustomEvent<{ status: "saving" | "saved" | "error" }>) => {

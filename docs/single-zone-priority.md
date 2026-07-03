@@ -71,13 +71,24 @@ room, if you model it); a room can belong to only one zone.
 
 ## Configuration
 
-Open **RoomMind → Settings → Priority Zones**. Add a zone per thermostat;
-each zone card lets you pick the thermostat, toggle zone rooms, add priority
-rooms with activation conditions (always / occupied / schedule / sleep), and
-tune thresholds, biases, offsets, main-area bounds, and compressor protection
-(minimum runtime / minimum off-time). Temperatures are shown in your HA unit
-system; a live status card per zone shows the current decision (state, active
-room, bias, lockouts) while the zone is enabled.
+Configuration is split so each setting lives where you'd expect it:
+
+**Zone-level — Settings → Priority Zones.** Add a zone per thermostat. Each
+zone card holds the thermostat, the optional main area, a sleep-mode entity,
+and (under **Advanced tuning**, collapsed by default) the thresholds, biases,
+offsets, main-area bounds, and compressor protection. A live status card shows
+the current decision (state, active room, bias, lockouts) while the zone is
+enabled, and a chip list summarises which rooms belong to the zone (★ marks
+priority rooms).
+
+**Room-level — each room's page → Priority Zone.** Assign the room to a zone,
+flip the *priority room* toggle, and pick its activation condition (always /
+occupied / schedule / sleep). These sit right next to the room's sensor and
+comfort targets — which is what the forcing acts on. A room belongs to only
+one zone; the picker reflects that.
+
+Temperatures are shown in your HA unit system throughout (converted to °C on
+the wire).
 
 Under the hood this edits the `priority_zones` settings list, which can also
 be saved directly via the `roommind_cc/settings/save` WebSocket command. All
@@ -148,6 +159,15 @@ one-entry list with id `zone_1`.
 Entities are created and removed automatically when zones are added or
 deleted. The current decisions also appear in `roommind_cc/rooms/list`
 (`priority_zone_state`, keyed by zone id) and in the integration diagnostics.
+
+## Front-page visibility
+
+Because a single shared thermostat conditions every room in its zone together,
+sensor-only zone rooms would otherwise always read `idle`. Instead, each zone
+room's card reflects the thermostat's actual conditioning (heating/cooling), so
+the dashboard heating/cooling counts include the zone. The room actively
+driving a forcing session gets a **Priority cooling / Priority heating** badge,
+so you can see at a glance which room the zone is running for.
 
 ## Multi-room users are unaffected
 

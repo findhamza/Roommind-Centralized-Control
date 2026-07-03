@@ -68,6 +68,9 @@ NORMAL_ROOM_KEYS = {
     "cover_reason",
     "active_cover_schedule_index",
     "active_heat_sources",
+    "zone_id",
+    "zone_priority_active",
+    "zone_priority_direction",
 }
 
 OUTDOOR_ROOM_KEYS = {

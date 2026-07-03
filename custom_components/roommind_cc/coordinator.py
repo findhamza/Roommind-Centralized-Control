@@ -1243,6 +1243,11 @@ class RoomMindCoordinator(DataUpdateCoordinator):
             "cover_forced_reason": (cover_result.forced_reason if cover_eids else ""),
             "active_cover_schedule_index": (cover_result.active_cover_schedule_index if cover_eids else -1),
             "active_heat_sources": self._heat_source_states.get(area_id),
+            # Priority zone annotations (filled by _annotate_zone_rooms after
+            # this dict is built; defaults here so the keys always exist).
+            "zone_id": None,
+            "zone_priority_active": False,
+            "zone_priority_direction": None,
         }
 
     @staticmethod
@@ -2243,6 +2248,66 @@ class RoomMindCoordinator(DataUpdateCoordinator):
                     await self._async_send_single_zone_setpoint(config.thermostat_entity, decision.command)
             except Exception:  # noqa: BLE001
                 _LOGGER.warning("Priority zone '%s' control failed", config.id, exc_info=True)
+
+        # Reflect each zone's conditioning + active priority room on its rooms so
+        # the front page (mode pills, heating/cooling counts, priority badge)
+        # shows what the single shared thermostat is actually doing.
+        self._annotate_zone_rooms(room_states, rooms_config, zones)
+
+    def _annotate_zone_rooms(
+        self,
+        room_states: dict[str, dict],
+        rooms_config: dict[str, dict],
+        zones: list[SingleZoneConfig],
+    ) -> None:
+        """Stamp zone conditioning + priority state onto member room states.
+
+        For a single shared thermostat every room in the zone is heated/cooled
+        together, but sensor-only rooms have no devices of their own and would
+        otherwise always display ``idle``.  We override the display ``mode`` of
+        such rooms with the thermostat's current conditioning mode (so counts
+        and pills light up) and flag the room actively driving a forcing
+        session.  Internal tracking (``_previous_modes``, residual heat, EKF)
+        is untouched — only the display state dict is annotated.
+        """
+        for config in zones:
+            conditioning = self._zone_conditioning_mode(config.thermostat_entity)
+            decision = self.priority_zone_data.get(config.id) or {}
+            active_room = decision.get("active_room") if decision.get("forcing") else None
+            direction = decision.get("direction")
+            for area_id in config.zone_rooms:
+                rs = room_states.get(area_id)
+                if rs is None:
+                    continue
+                rs["zone_id"] = config.id
+                # Only sensor-only rooms (no devices of their own) get the mode
+                # override — rooms with real devices keep their commanded mode.
+                room_cfg = rooms_config.get(area_id, {})
+                sensor_only = not any(d.get("entity_id") for d in room_cfg.get("devices", []))
+                if sensor_only and rs.get("mode", MODE_IDLE) == MODE_IDLE and conditioning != MODE_IDLE:
+                    rs["mode"] = conditioning
+                if area_id == active_room:
+                    rs["zone_priority_active"] = True
+                    rs["zone_priority_direction"] = direction
+
+    def _zone_conditioning_mode(self, thermostat_eid: str) -> str:
+        """Return the thermostat's current conditioning mode for display.
+
+        Derived from ``hvac_action`` so it reflects actual runtime, whether the
+        zone was forced by RoomMind or the thermostat is satisfying its own
+        area.  Returns MODE_HEATING / MODE_COOLING / MODE_IDLE.
+        """
+        if not thermostat_eid:
+            return MODE_IDLE
+        state = self.hass.states.get(thermostat_eid)
+        if state is None or state.state in ("unavailable", "unknown", "off"):
+            return MODE_IDLE
+        action = state.attributes.get("hvac_action")
+        if action == "cooling":
+            return MODE_COOLING
+        if action in ("heating", "preheating"):
+            return MODE_HEATING
+        return MODE_IDLE
 
     def _build_single_zone_snapshot(
         self,

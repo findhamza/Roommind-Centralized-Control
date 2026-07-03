@@ -10,14 +10,8 @@
  */
 import { html, css, nothing } from "lit";
 import { RsSettingsBase } from "./rs-settings-base";
-import { customElement, property } from "lit/decorators.js";
-import type {
-  HomeAssistant,
-  PriorityZone,
-  RoomConfig,
-  SingleZoneCondition,
-  SingleZonePriorityRoom,
-} from "../../types";
+import { customElement, property, state } from "lit/decorators.js";
+import type { HomeAssistant, PriorityZone, RoomConfig } from "../../types";
 import { localize } from "../../utils/localize";
 import { getSelectValue } from "../../utils/events";
 import {
@@ -65,6 +59,8 @@ export class RsSettingsSingleZone extends RsSettingsBase {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ attribute: false }) public rooms: Record<string, RoomConfig> = {};
   @property({ type: Array }) public zones: PriorityZone[] = [];
+
+  @state() private _advancedOpen: Set<string> = new Set();
 
   render() {
     const l = this.hass.language;
@@ -145,72 +141,39 @@ export class RsSettingsSingleZone extends RsSettingsBase {
           <div class="field-hint">${localize("single_zone.thermostat_hint", l)}</div>
         </div>
 
-        <!-- Zone rooms -->
+        <!-- Rooms: assigned per-room -->
         <div class="settings-section">
-          <span class="section-label">${localize("single_zone.zone_rooms", l)}</span>
-          <div class="field-hint">${localize("single_zone.zone_rooms_hint", l)}</div>
-          <div class="room-toggles">
-            ${this._configuredRooms().map((room) => {
-              const otherZone = this._zoneRoomOwner(room.areaId, sz.id);
-              return html`
-                <div class="room-toggle-row">
-                  <span class="room-toggle-name">
-                    ${room.name}
-                    ${otherZone
-                      ? html`<span class="room-toggle-other"
-                          >${localize("single_zone.room_in_other_zone", l).replace(
-                            "{zone}",
-                            otherZone,
-                          )}</span
-                        >`
-                      : nothing}
-                  </span>
-                  <ha-switch
-                    .checked=${sz.zone_rooms.includes(room.areaId)}
-                    .disabled=${!!otherZone}
-                    @change=${(e: Event) => {
-                      const set = new Set(sz.zone_rooms);
-                      if ((e.target as HTMLInputElement).checked) set.add(room.areaId);
-                      else set.delete(room.areaId);
-                      this._updateZone(idx, { zone_rooms: [...set] });
-                    }}
-                  ></ha-switch>
-                </div>
-              `;
-            })}
+          <span class="section-label">${localize("single_zone.rooms_label", l)}</span>
+          <div class="rooms-summary">
+            ${sz.zone_rooms.length > 0
+              ? this._configuredRooms()
+                  .filter((r) => sz.zone_rooms.includes(r.areaId))
+                  .map((r) => {
+                    const isPriority = sz.priority_rooms.some((p) => p.area_id === r.areaId);
+                    return html`<span class="room-chip ${isPriority ? "priority" : ""}">
+                      ${isPriority
+                        ? html`<ha-icon icon="mdi:star" style="--mdc-icon-size:13px"></ha-icon>`
+                        : nothing}${r.name}
+                    </span>`;
+                  })
+              : html`<span class="field-hint">${localize("single_zone.rooms_empty", l)}</span>`}
           </div>
+          <div class="field-hint">${localize("single_zone.rooms_hint", l)}</div>
         </div>
 
-        <!-- Priority rooms -->
+        <!-- Sleep mode entity (referenced by rooms with the "sleep" condition) -->
         <div class="settings-section">
-          <span class="section-label">${localize("single_zone.priority_rooms", l)}</span>
-          <div class="field-hint">${localize("single_zone.priority_rooms_hint", l)}</div>
-          ${sz.priority_rooms.map((pr, prIdx) => this._renderPriorityRoom(sz, idx, pr, prIdx))}
-          <ha-button
-            class="add-button"
-            .disabled=${this._availablePriorityRooms(sz.id, "").length === 0}
-            @click=${() => this._addPriorityRoom(idx)}
-          >
-            <ha-icon icon="mdi:plus" slot="icon"></ha-icon>
-            ${localize("single_zone.add_priority_room", l)}
-          </ha-button>
-          ${sz.priority_rooms.some((pr) => pr.condition === "sleep")
-            ? html`
-                <div class="field-row">
-                  <ha-entity-picker
-                    .hass=${this.hass}
-                    .value=${sz.sleep_mode_entity}
-                    .includeDomains=${["input_boolean", "binary_sensor", "switch"]}
-                    .label=${localize("single_zone.sleep_entity", l)}
-                    @value-changed=${(e: CustomEvent) =>
-                      this._updateZone(idx, {
-                        sleep_mode_entity: (e.detail?.value as string) ?? "",
-                      })}
-                  ></ha-entity-picker>
-                  <div class="field-hint">${localize("single_zone.sleep_entity_hint", l)}</div>
-                </div>
-              `
-            : nothing}
+          <ha-entity-picker
+            .hass=${this.hass}
+            .value=${sz.sleep_mode_entity}
+            .includeDomains=${["input_boolean", "binary_sensor", "switch"]}
+            .label=${localize("single_zone.sleep_entity", l)}
+            @value-changed=${(e: CustomEvent) =>
+              this._updateZone(idx, {
+                sleep_mode_entity: (e.detail?.value as string) ?? "",
+              })}
+          ></ha-entity-picker>
+          <div class="field-hint">${localize("single_zone.sleep_entity_hint", l)}</div>
         </div>
 
         <!-- Main area -->
@@ -253,162 +216,215 @@ export class RsSettingsSingleZone extends RsSettingsBase {
           </div>
         </div>
 
-        <!-- Start/stop thresholds -->
-        <div class="settings-section">
-          <span class="section-label">${localize("single_zone.thresholds", l)}</span>
-          <div class="field-hint">${localize("single_zone.thresholds_hint", l)}</div>
-          <div class="number-fields">
-            ${this._deltaField("single_zone.cool_start", sz.cool_start_threshold, 0.1, 5, (v) =>
-              this._updateZone(idx, {
-                cool_start_threshold: v,
-                cool_stop_threshold: Math.min(sz.cool_stop_threshold, v - MIN_THRESHOLD_GAP),
-              }),
-            )}
-            ${this._deltaField("single_zone.cool_stop", sz.cool_stop_threshold, 0, 5, (v) =>
-              this._updateZone(idx, {
-                cool_stop_threshold: Math.min(v, sz.cool_start_threshold - MIN_THRESHOLD_GAP),
-              }),
-            )}
-            ${this._deltaField("single_zone.heat_start", sz.heat_start_threshold, 0.1, 5, (v) =>
-              this._updateZone(idx, {
-                heat_start_threshold: v,
-                heat_stop_threshold: Math.min(sz.heat_stop_threshold, v - MIN_THRESHOLD_GAP),
-              }),
-            )}
-            ${this._deltaField("single_zone.heat_stop", sz.heat_stop_threshold, 0, 5, (v) =>
-              this._updateZone(idx, {
-                heat_stop_threshold: Math.min(v, sz.heat_start_threshold - MIN_THRESHOLD_GAP),
-              }),
-            )}
-          </div>
-        </div>
-
-        <!-- Bias -->
-        <div class="settings-section">
-          <div class="toggle-row">
-            <div class="toggle-text">
-              <span class="toggle-label">${localize("single_zone.dynamic_bias", l)}</span>
-              <span class="toggle-hint">${localize("single_zone.dynamic_bias_hint", l)}</span>
-            </div>
-            <ha-switch
-              .checked=${sz.dynamic_bias}
-              @change=${(e: Event) =>
-                this._updateZone(idx, { dynamic_bias: (e.target as HTMLInputElement).checked })}
-            ></ha-switch>
-          </div>
-          <div class="number-fields">
-            ${sz.dynamic_bias
-              ? nothing
-              : html`
-                  ${this._deltaField("single_zone.cool_bias", sz.cool_bias, 0.5, 10, (v) =>
-                    this._updateZone(idx, { cool_bias: v }),
+        <!-- Advanced tuning (collapsed by default) -->
+        <button class="advanced-toggle" @click=${() => this._toggleAdvanced(sz.id)}>
+          <ha-icon
+            icon=${this._advancedOpen.has(sz.id) ? "mdi:chevron-up" : "mdi:chevron-down"}
+          ></ha-icon>
+          ${localize("single_zone.advanced", l)}
+        </button>
+        ${this._advancedOpen.has(sz.id)
+          ? html`
+              <!-- Start/stop thresholds -->
+              <div class="settings-section">
+                <span class="section-label">${localize("single_zone.thresholds", l)}</span>
+                <div class="field-hint">${localize("single_zone.thresholds_hint", l)}</div>
+                <div class="number-fields">
+                  ${this._deltaField(
+                    "single_zone.cool_start",
+                    sz.cool_start_threshold,
+                    0.1,
+                    5,
+                    (v) =>
+                      this._updateZone(idx, {
+                        cool_start_threshold: v,
+                        cool_stop_threshold: Math.min(
+                          sz.cool_stop_threshold,
+                          v - MIN_THRESHOLD_GAP,
+                        ),
+                      }),
                   )}
-                  ${this._deltaField("single_zone.heat_bias", sz.heat_bias, 0.5, 10, (v) =>
-                    this._updateZone(idx, { heat_bias: v }),
+                  ${this._deltaField("single_zone.cool_stop", sz.cool_stop_threshold, 0, 5, (v) =>
+                    this._updateZone(idx, {
+                      cool_stop_threshold: Math.min(v, sz.cool_start_threshold - MIN_THRESHOLD_GAP),
+                    }),
                   )}
-                `}
-            ${this._deltaField("single_zone.max_cool_offset", sz.max_cool_offset, 0.5, 10, (v) =>
-              this._updateZone(idx, { max_cool_offset: v }),
-            )}
-            ${this._deltaField("single_zone.max_heat_offset", sz.max_heat_offset, 0.5, 10, (v) =>
-              this._updateZone(idx, { max_heat_offset: v }),
-            )}
-          </div>
-        </div>
+                  ${this._deltaField(
+                    "single_zone.heat_start",
+                    sz.heat_start_threshold,
+                    0.1,
+                    5,
+                    (v) =>
+                      this._updateZone(idx, {
+                        heat_start_threshold: v,
+                        heat_stop_threshold: Math.min(
+                          sz.heat_stop_threshold,
+                          v - MIN_THRESHOLD_GAP,
+                        ),
+                      }),
+                  )}
+                  ${this._deltaField("single_zone.heat_stop", sz.heat_stop_threshold, 0, 5, (v) =>
+                    this._updateZone(idx, {
+                      heat_stop_threshold: Math.min(v, sz.heat_start_threshold - MIN_THRESHOLD_GAP),
+                    }),
+                  )}
+                </div>
+              </div>
 
-        <!-- Main-area comfort bounds -->
-        <div class="settings-section">
-          <span class="section-label">${localize("single_zone.main_bounds", l)}</span>
-          <div class="field-hint">${localize("single_zone.main_bounds_hint", l)}</div>
-          <div class="number-fields">
-            ${this._absTempField("single_zone.main_min_temp", sz.main_min_temp, (v) =>
-              this._updateZone(idx, { main_min_temp: Math.min(v, sz.main_max_temp - 0.5) }),
-            )}
-            ${this._absTempField("single_zone.main_max_temp", sz.main_max_temp, (v) =>
-              this._updateZone(idx, { main_max_temp: Math.max(v, sz.main_min_temp + 0.5) }),
-            )}
-          </div>
-        </div>
+              <!-- Bias -->
+              <div class="settings-section">
+                <div class="toggle-row">
+                  <div class="toggle-text">
+                    <span class="toggle-label">${localize("single_zone.dynamic_bias", l)}</span>
+                    <span class="toggle-hint">${localize("single_zone.dynamic_bias_hint", l)}</span>
+                  </div>
+                  <ha-switch
+                    .checked=${sz.dynamic_bias}
+                    @change=${(e: Event) =>
+                      this._updateZone(idx, {
+                        dynamic_bias: (e.target as HTMLInputElement).checked,
+                      })}
+                  ></ha-switch>
+                </div>
+                <div class="number-fields">
+                  ${sz.dynamic_bias
+                    ? nothing
+                    : html`
+                        ${this._deltaField("single_zone.cool_bias", sz.cool_bias, 0.5, 10, (v) =>
+                          this._updateZone(idx, { cool_bias: v }),
+                        )}
+                        ${this._deltaField("single_zone.heat_bias", sz.heat_bias, 0.5, 10, (v) =>
+                          this._updateZone(idx, { heat_bias: v }),
+                        )}
+                      `}
+                  ${this._deltaField(
+                    "single_zone.max_cool_offset",
+                    sz.max_cool_offset,
+                    0.5,
+                    10,
+                    (v) => this._updateZone(idx, { max_cool_offset: v }),
+                  )}
+                  ${this._deltaField(
+                    "single_zone.max_heat_offset",
+                    sz.max_heat_offset,
+                    0.5,
+                    10,
+                    (v) => this._updateZone(idx, { max_heat_offset: v }),
+                  )}
+                </div>
+              </div>
 
-        <!-- Compressor protection -->
-        <div class="settings-section">
-          <span class="section-label">${localize("single_zone.protection", l)}</span>
-          <div class="field-hint">${localize("single_zone.protection_hint", l)}</div>
-          <div class="number-fields">
-            <div>
-              <ha-textfield
-                type="number"
-                .value=${String(sz.min_run_minutes)}
-                .label=${localize("single_zone.min_run", l)}
-                .suffix=${localize("single_zone.minutes_suffix", l)}
-                min="1"
-                max="60"
-                step="1"
-                @change=${(e: Event) => {
-                  const v = parseInt((e.target as HTMLInputElement).value, 10);
-                  if (!isNaN(v) && v >= 1 && v <= 60) this._updateZone(idx, { min_run_minutes: v });
-                }}
-              ></ha-textfield>
-              <div class="field-hint">${localize("single_zone.min_run_hint", l)}</div>
-            </div>
-            <div>
-              <ha-textfield
-                type="number"
-                .value=${String(sz.min_off_minutes)}
-                .label=${localize("single_zone.min_off", l)}
-                .suffix=${localize("single_zone.minutes_suffix", l)}
-                min="1"
-                max="60"
-                step="1"
-                @change=${(e: Event) => {
-                  const v = parseInt((e.target as HTMLInputElement).value, 10);
-                  if (!isNaN(v) && v >= 1 && v <= 60) this._updateZone(idx, { min_off_minutes: v });
-                }}
-              ></ha-textfield>
-              <div class="field-hint">${localize("single_zone.min_off_hint", l)}</div>
-            </div>
-          </div>
-        </div>
+              <!-- Main-area comfort bounds -->
+              <div class="settings-section">
+                <span class="section-label">${localize("single_zone.main_bounds", l)}</span>
+                <div class="field-hint">${localize("single_zone.main_bounds_hint", l)}</div>
+                <div class="number-fields">
+                  ${this._absTempField("single_zone.main_min_temp", sz.main_min_temp, (v) =>
+                    this._updateZone(idx, { main_min_temp: Math.min(v, sz.main_max_temp - 0.5) }),
+                  )}
+                  ${this._absTempField("single_zone.main_max_temp", sz.main_max_temp, (v) =>
+                    this._updateZone(idx, { main_max_temp: Math.max(v, sz.main_min_temp + 0.5) }),
+                  )}
+                </div>
+              </div>
 
-        <!-- Behavior -->
-        <div class="settings-section">
-          <div class="toggle-row">
-            <div class="toggle-text">
-              <span class="toggle-label">${localize("single_zone.priority_wins", l)}</span>
-              <span class="toggle-hint">${localize("single_zone.priority_wins_hint", l)}</span>
-            </div>
-            <ha-switch
-              .checked=${sz.priority_wins}
-              @change=${(e: Event) =>
-                this._updateZone(idx, { priority_wins: (e.target as HTMLInputElement).checked })}
-            ></ha-switch>
-          </div>
-          <div class="field-row">
-            <ha-select
-              .label=${localize("single_zone.restore_behavior", l)}
-              .value=${sz.restore_behavior}
-              .options=${[
-                { value: "restore", label: localize("single_zone.restore_restore", l) },
-                { value: "leave", label: localize("single_zone.restore_leave", l) },
-              ]}
-              fixedMenuPosition
-              @selected=${(e: Event) => {
-                const v = getSelectValue(e) as "restore" | "leave";
-                if (v && v !== sz.restore_behavior) this._updateZone(idx, { restore_behavior: v });
-              }}
-              @closed=${(e: Event) => e.stopPropagation()}
-              style="width: 100%;"
-            >
-              <ha-list-item value="restore"
-                >${localize("single_zone.restore_restore", l)}</ha-list-item
-              >
-              <ha-list-item value="leave">${localize("single_zone.restore_leave", l)}</ha-list-item>
-            </ha-select>
-            <div class="field-hint">${localize("single_zone.restore_behavior_hint", l)}</div>
-          </div>
-        </div>
+              <!-- Compressor protection -->
+              <div class="settings-section">
+                <span class="section-label">${localize("single_zone.protection", l)}</span>
+                <div class="field-hint">${localize("single_zone.protection_hint", l)}</div>
+                <div class="number-fields">
+                  <div>
+                    <ha-textfield
+                      type="number"
+                      .value=${String(sz.min_run_minutes)}
+                      .label=${localize("single_zone.min_run", l)}
+                      .suffix=${localize("single_zone.minutes_suffix", l)}
+                      min="1"
+                      max="60"
+                      step="1"
+                      @change=${(e: Event) => {
+                        const v = parseInt((e.target as HTMLInputElement).value, 10);
+                        if (!isNaN(v) && v >= 1 && v <= 60)
+                          this._updateZone(idx, { min_run_minutes: v });
+                      }}
+                    ></ha-textfield>
+                    <div class="field-hint">${localize("single_zone.min_run_hint", l)}</div>
+                  </div>
+                  <div>
+                    <ha-textfield
+                      type="number"
+                      .value=${String(sz.min_off_minutes)}
+                      .label=${localize("single_zone.min_off", l)}
+                      .suffix=${localize("single_zone.minutes_suffix", l)}
+                      min="1"
+                      max="60"
+                      step="1"
+                      @change=${(e: Event) => {
+                        const v = parseInt((e.target as HTMLInputElement).value, 10);
+                        if (!isNaN(v) && v >= 1 && v <= 60)
+                          this._updateZone(idx, { min_off_minutes: v });
+                      }}
+                    ></ha-textfield>
+                    <div class="field-hint">${localize("single_zone.min_off_hint", l)}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Behavior -->
+              <div class="settings-section">
+                <div class="toggle-row">
+                  <div class="toggle-text">
+                    <span class="toggle-label">${localize("single_zone.priority_wins", l)}</span>
+                    <span class="toggle-hint"
+                      >${localize("single_zone.priority_wins_hint", l)}</span
+                    >
+                  </div>
+                  <ha-switch
+                    .checked=${sz.priority_wins}
+                    @change=${(e: Event) =>
+                      this._updateZone(idx, {
+                        priority_wins: (e.target as HTMLInputElement).checked,
+                      })}
+                  ></ha-switch>
+                </div>
+                <div class="field-row">
+                  <ha-select
+                    .label=${localize("single_zone.restore_behavior", l)}
+                    .value=${sz.restore_behavior}
+                    .options=${[
+                      { value: "restore", label: localize("single_zone.restore_restore", l) },
+                      { value: "leave", label: localize("single_zone.restore_leave", l) },
+                    ]}
+                    fixedMenuPosition
+                    @selected=${(e: Event) => {
+                      const v = getSelectValue(e) as "restore" | "leave";
+                      if (v && v !== sz.restore_behavior)
+                        this._updateZone(idx, { restore_behavior: v });
+                    }}
+                    @closed=${(e: Event) => e.stopPropagation()}
+                    style="width: 100%;"
+                  >
+                    <ha-list-item value="restore"
+                      >${localize("single_zone.restore_restore", l)}</ha-list-item
+                    >
+                    <ha-list-item value="leave"
+                      >${localize("single_zone.restore_leave", l)}</ha-list-item
+                    >
+                  </ha-select>
+                  <div class="field-hint">${localize("single_zone.restore_behavior_hint", l)}</div>
+                </div>
+              </div>
+            `
+          : nothing}
       </div>
     `;
+  }
+
+  private _toggleAdvanced(zoneId: string) {
+    const next = new Set(this._advancedOpen);
+    if (next.has(zoneId)) next.delete(zoneId);
+    else next.add(zoneId);
+    this._advancedOpen = next;
   }
 
   /** Live decision state from the zone's status sensor entity. */
@@ -455,88 +471,6 @@ export class RsSettingsSingleZone extends RsSettingsBase {
               <ha-icon icon="mdi:shield-alert-outline"></ha-icon>
               ${localize("single_zone.protection_active", l)}
             </div>`
-          : nothing}
-      </div>
-    `;
-  }
-
-  private _renderPriorityRoom(
-    sz: PriorityZone,
-    zoneIdx: number,
-    pr: SingleZonePriorityRoom,
-    prIdx: number,
-  ) {
-    const l = this.hass.language;
-    return html`
-      <div class="priority-card">
-        <div class="priority-row">
-          <ha-select
-            .label=${localize("single_zone.priority_room", l)}
-            .value=${pr.area_id}
-            .options=${this._availablePriorityRooms(sz.id, pr.area_id).map((room) => ({
-              value: room.areaId,
-              label: room.name,
-            }))}
-            fixedMenuPosition
-            @selected=${(e: Event) => {
-              const v = getSelectValue(e);
-              if (v && v !== pr.area_id) this._updatePriorityRoom(zoneIdx, prIdx, { area_id: v });
-            }}
-            @closed=${(e: Event) => e.stopPropagation()}
-          >
-            ${this._availablePriorityRooms(sz.id, pr.area_id).map(
-              (room) => html`<ha-list-item value=${room.areaId}>${room.name}</ha-list-item>`,
-            )}
-          </ha-select>
-          <ha-select
-            .label=${localize("single_zone.condition", l)}
-            .value=${pr.condition}
-            .options=${[
-              { value: "always", label: localize("single_zone.condition_always", l) },
-              { value: "occupied", label: localize("single_zone.condition_occupied", l) },
-              { value: "schedule", label: localize("single_zone.condition_schedule", l) },
-              { value: "sleep", label: localize("single_zone.condition_sleep", l) },
-            ]}
-            fixedMenuPosition
-            @selected=${(e: Event) => {
-              const v = getSelectValue(e) as SingleZoneCondition;
-              if (v && v !== pr.condition)
-                this._updatePriorityRoom(zoneIdx, prIdx, { condition: v });
-            }}
-            @closed=${(e: Event) => e.stopPropagation()}
-          >
-            <ha-list-item value="always"
-              >${localize("single_zone.condition_always", l)}</ha-list-item
-            >
-            <ha-list-item value="occupied"
-              >${localize("single_zone.condition_occupied", l)}</ha-list-item
-            >
-            <ha-list-item value="schedule"
-              >${localize("single_zone.condition_schedule", l)}</ha-list-item
-            >
-            <ha-list-item value="sleep">${localize("single_zone.condition_sleep", l)}</ha-list-item>
-          </ha-select>
-          <ha-icon-button
-            .path=${"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"}
-            @click=${() =>
-              this._updateZone(zoneIdx, {
-                priority_rooms: sz.priority_rooms.filter((_, i) => i !== prIdx),
-              })}
-          ></ha-icon-button>
-        </div>
-        ${pr.condition === "schedule"
-          ? html`
-              <ha-entity-picker
-                .hass=${this.hass}
-                .value=${pr.schedule_entity}
-                .includeDomains=${["schedule", "input_boolean", "binary_sensor"]}
-                .label=${localize("single_zone.condition_schedule_entity", l)}
-                @value-changed=${(e: CustomEvent) =>
-                  this._updatePriorityRoom(zoneIdx, prIdx, {
-                    schedule_entity: (e.detail?.value as string) ?? "",
-                  })}
-              ></ha-entity-picker>
-            `
           : nothing}
       </div>
     `;
@@ -621,29 +555,6 @@ export class RsSettingsSingleZone extends RsSettingsBase {
     return this.rooms[areaId]?.display_name || this.hass.areas?.[areaId]?.name || areaId;
   }
 
-  /** Zone label if *areaId* is a zone room of a zone other than *zoneId*. */
-  private _zoneRoomOwner(areaId: string, zoneId: string): string | null {
-    for (const z of this.zones) {
-      if (z.id !== zoneId && (z.zone_rooms ?? []).includes(areaId)) {
-        return z.name || z.id;
-      }
-    }
-    return null;
-  }
-
-  /** Rooms selectable as priority room in a zone: not used by ANY zone (except *current*). */
-  private _availablePriorityRooms(
-    zoneId: string,
-    current: string,
-  ): { areaId: string; name: string }[] {
-    const used = new Set<string>();
-    for (const z of this.zones) {
-      for (const p of z.priority_rooms ?? []) used.add(p.area_id);
-    }
-    used.delete(current);
-    return this._configuredRooms().filter((r) => !used.has(r.areaId));
-  }
-
   private _thermostatFilter(zoneId: string) {
     return (entity: { entity_id: string }): boolean => {
       const id = entity.entity_id;
@@ -661,29 +572,6 @@ export class RsSettingsSingleZone extends RsSettingsBase {
       self.crypto?.randomUUID?.()?.replace(/-/g, "").slice(0, 8) ??
       Math.random().toString(36).slice(2, 10);
     this._fireZones([...this.zones, { ...ZONE_DEFAULTS, id: `zone_${suffix}` }]);
-  }
-
-  private _addPriorityRoom(zoneIdx: number) {
-    const zone = { ...ZONE_DEFAULTS, ...this.zones[zoneIdx] };
-    const available = this._availablePriorityRooms(zone.id, "");
-    if (available.length === 0) return;
-    this._updateZone(zoneIdx, {
-      priority_rooms: [
-        ...zone.priority_rooms,
-        { area_id: available[0].areaId, condition: "always", schedule_entity: "" },
-      ],
-    });
-  }
-
-  private _updatePriorityRoom(
-    zoneIdx: number,
-    prIdx: number,
-    changes: Partial<SingleZonePriorityRoom>,
-  ) {
-    const zone = { ...ZONE_DEFAULTS, ...this.zones[zoneIdx] };
-    const updated = [...zone.priority_rooms];
-    updated[prIdx] = { ...updated[prIdx], ...changes };
-    this._updateZone(zoneIdx, { priority_rooms: updated });
   }
 
   private _updateZone(idx: number, changes: Partial<PriorityZone>) {
@@ -752,45 +640,43 @@ export class RsSettingsSingleZone extends RsSettingsBase {
         }
       }
 
-      .room-toggles {
+      .rooms-summary {
         display: flex;
-        flex-direction: column;
-        gap: 4px;
-        margin-top: 8px;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 8px 0;
       }
-      .room-toggle-row {
-        display: flex;
+      .room-chip {
+        display: inline-flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 4px 0;
-      }
-      .room-toggle-name {
-        font-size: 14px;
+        gap: 4px;
+        font-size: 13px;
+        padding: 3px 10px;
+        border-radius: 12px;
+        background: var(--secondary-background-color);
         color: var(--primary-text-color);
       }
-      .room-toggle-other {
-        font-size: 12px;
-        color: var(--secondary-text-color);
-        margin-left: 6px;
+      .room-chip.priority {
+        color: var(--primary-color);
+        background: rgba(var(--rgb-primary-color, 33, 150, 243), 0.12);
       }
 
-      .priority-card {
-        border: 1px solid var(--divider-color);
-        border-radius: 8px;
-        padding: 12px;
-        margin-top: 12px;
-      }
-      .priority-row {
-        display: flex;
+      .advanced-toggle {
+        display: inline-flex;
         align-items: center;
-        gap: 8px;
+        gap: 4px;
+        background: none;
+        border: none;
+        padding: 12px 0 4px;
+        margin: 0;
+        cursor: pointer;
+        font-size: 13px;
+        color: var(--primary-color);
+        font-family: inherit;
+        --mdc-icon-size: 18px;
       }
-      .priority-row ha-select {
-        flex: 1;
-        min-width: 0;
-      }
-      .priority-card ha-entity-picker {
-        margin-top: 8px;
+      .advanced-toggle:hover {
+        text-decoration: underline;
       }
 
       .status-card {

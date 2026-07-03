@@ -599,5 +599,20 @@
   "single_zone.zone_name": "Zonenname",
   "single_zone.delete_zone": "Zone löschen",
   "single_zone.delete_zone_confirm": "Prioritätszone „{name}“ löschen? Eine aktive Erzwingungs-Sitzung wird beendet und der Thermostat-Sollwert wiederhergestellt.",
-  "single_zone.room_in_other_zone": "(in {zone})"
+  "single_zone.room_in_other_zone": "(in {zone})",
+  "card.priority_cooling": "Prioritätskühlung",
+  "card.priority_heating": "Prioritätsheizung",
+  "room.section.zone": "Prioritätszone",
+  "room.zone.info": "Diesen Raum einer Prioritätszone zuordnen (definiert unter Einstellungen → Prioritätszonen). Als Prioritätsraum kann er das Zonen-Thermostat zum Laufen zwingen, wenn der Raum unkomfortabel ist.",
+  "room.zone.no_zones": "Noch keine Prioritätszonen. Lege unter Einstellungen → Prioritätszonen eine an und ordne diesen Raum dann hier zu.",
+  "room.zone.assign": "Zone",
+  "room.zone.assign_hint": "Die HLK-Zone, die diesen Raum konditioniert. Ein Raum kann nur zu einer Zone gehören.",
+  "room.zone.none": "Keiner Zone zugeordnet",
+  "room.zone.priority": "Prioritätsraum",
+  "room.zone.priority_hint": "Das Zonen-Thermostat zum Laufen zwingen, wenn dieser Raum sein Komfortziel überschreitet.",
+  "room.zone.condition": "Aktiv wenn",
+  "single_zone.rooms_label": "Räume in dieser Zone",
+  "single_zone.rooms_empty": "Noch keine Räume zugeordnet.",
+  "single_zone.rooms_hint": "Räume zuordnen und Prioritätsräume (★) auf der jeweiligen Raumseite → Prioritätszone festlegen.",
+  "single_zone.advanced": "Erweiterte Einstellungen"
 }

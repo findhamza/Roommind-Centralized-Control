@@ -207,6 +207,27 @@ export class RsAreaCard extends LitElement {
         background: rgba(158, 158, 158, 0.1);
       }
 
+      .priority-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        font-weight: 500;
+        padding: 2px 8px 2px 6px;
+        border-radius: 10px;
+        --mdc-icon-size: 14px;
+      }
+
+      .priority-badge.cool {
+        color: var(--info-color, #2196f3);
+        background: rgba(33, 150, 243, 0.12);
+      }
+
+      .priority-badge.heat {
+        color: var(--warning-color, #ff9800);
+        background: rgba(255, 152, 0, 0.12);
+      }
+
       .mold-badge {
         display: inline-flex;
         align-items: center;
@@ -493,6 +514,19 @@ export class RsAreaCard extends LitElement {
                   delta: toDisplayDelta(live.mold_prevention_delta, this.hass).toFixed(0),
                   unit: tempUnit(this.hass),
                 })}
+              </span>`
+            : nothing}
+          ${live.zone_priority_active
+            ? html`<span class="priority-badge ${live.zone_priority_direction ?? ""}">
+                <ha-icon
+                  .icon=${live.zone_priority_direction === "heat" ? "mdi:fire" : "mdi:snowflake"}
+                ></ha-icon>
+                ${localize(
+                  live.zone_priority_direction === "heat"
+                    ? "card.priority_heating"
+                    : "card.priority_cooling",
+                  this.hass.language,
+                )}
               </span>`
             : nothing}
           ${showMpcIcon

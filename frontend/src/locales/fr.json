@@ -599,5 +599,20 @@
   "single_zone.zone_name": "Nom de la zone",
   "single_zone.delete_zone": "Supprimer la zone",
   "single_zone.delete_zone_confirm": "Supprimer la zone prioritaire « {name} » ? Une session de forçage active est terminée et la consigne du thermostat restaurée.",
-  "single_zone.room_in_other_zone": "(dans {zone})"
+  "single_zone.room_in_other_zone": "(dans {zone})",
+  "card.priority_cooling": "Clim prioritaire",
+  "card.priority_heating": "Chauffage prioritaire",
+  "room.section.zone": "Zone prioritaire",
+  "room.zone.info": "Affecter cette pièce à une zone prioritaire (définie dans Paramètres → Zones prioritaires). En tant que pièce prioritaire, elle peut forcer le thermostat de la zone à fonctionner quand elle est inconfortable.",
+  "room.zone.no_zones": "Aucune zone prioritaire. Créez-en une dans Paramètres → Zones prioritaires, puis affectez cette pièce ici.",
+  "room.zone.assign": "Zone",
+  "room.zone.assign_hint": "La zone CVC qui conditionne cette pièce. Une pièce ne peut appartenir qu'à une seule zone.",
+  "room.zone.none": "Aucune zone",
+  "room.zone.priority": "Pièce prioritaire",
+  "room.zone.priority_hint": "Forcer le thermostat de la zone à fonctionner quand cette pièce dépasse sa cible de confort.",
+  "room.zone.condition": "Active quand",
+  "single_zone.rooms_label": "Pièces de cette zone",
+  "single_zone.rooms_empty": "Aucune pièce affectée.",
+  "single_zone.rooms_hint": "Affectez les pièces et marquez les pièces prioritaires (★) depuis la page de chaque pièce → Zone prioritaire.",
+  "single_zone.advanced": "Réglages avancés"
 }
