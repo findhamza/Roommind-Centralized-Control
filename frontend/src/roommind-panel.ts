@@ -983,7 +983,9 @@ export class RoomMindPanel extends LitElement {
   }
 
   private _navigate(path: string) {
-    history.replaceState(null, "", `/roommind${path}`);
+    // Base must match this panel's frontend_url_path ("roommind-cc") —
+    // navigating under /roommind would switch HA to the upstream panel.
+    history.replaceState(null, "", `/roommind-cc${path}`);
     window.dispatchEvent(new Event("location-changed"));
   }
 
