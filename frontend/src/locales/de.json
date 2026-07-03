@@ -618,5 +618,8 @@
   "single_zone.deadband": "Umschalt-Totzone für Auto (Heizen/Kühlen)",
   "single_zone.deadband_hint": "Nur relevant, wenn das Thermostat im heat_cool-/Auto-Modus läuft. RoomMind hält den erzwungenen Sollwert mindestens so weit vom gegenüberliegenden Sollwert entfernt, damit das Thermostat nie den Modus wechselt oder den anderen Sollwert verstellt. Auf den Wert der Umschalt-Totzone deines Thermostats setzen (oder knapp darüber). Im reinen Heiz- oder Kühlmodus ignoriert.",
   "single_zone.band_deadband": "Totzone",
-  "single_zone.band_deadband_hint": "Minimaler Abstand zwischen Heiz- und Kühlsollwert."
+  "single_zone.band_deadband_hint": "Minimaler Abstand zwischen Heiz- und Kühlsollwert.",
+  "room.zone_device.info": "Dieser Raum hat kein eigenes Gerät. Er wird vom zentralen Thermostat seiner Prioritätszone konditioniert, hier schreibgeschützt angezeigt. Das Thermostat wird unter Einstellungen → Prioritätszonen verwaltet.",
+  "room.zone_device.managed_by": "Verwaltet von Zone: {zone}",
+  "room.zone_device.hint": "Dieses Thermostat hier nicht als Gerät hinzufügen — es würde die Zone stören. Es wird über Prioritätszonen gesteuert."
 }

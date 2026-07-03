@@ -618,5 +618,8 @@
   "single_zone.deadband": "Auto (heat/cool) changeover deadband",
   "single_zone.deadband_hint": "Only used when the thermostat runs in heat_cool/auto mode. RoomMind keeps the forced setpoint at least this far from the opposite setpoint so the thermostat never flips modes or re-adjusts the other setpoint. Set it to match (or slightly above) your thermostat's own changeover deadband. Ignored in single heat or cool mode.",
   "single_zone.band_deadband": "Deadband",
-  "single_zone.band_deadband_hint": "Minimum gap kept between the heat and cool setpoints."
+  "single_zone.band_deadband_hint": "Minimum gap kept between the heat and cool setpoints.",
+  "room.zone_device.info": "This room has no device of its own. It's conditioned by its priority zone's central thermostat, shown here read-only. Manage the thermostat in Settings → Priority Zones.",
+  "room.zone_device.managed_by": "Managed by zone: {zone}",
+  "room.zone_device.hint": "Don't add this thermostat as a device here — it would fight the zone. It's controlled through Priority Zones."
 }

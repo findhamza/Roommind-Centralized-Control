@@ -12,6 +12,7 @@ import type {
   DeviceType,
   DeviceRole,
   PriorityZone,
+  RoomMode,
 } from "../types";
 import "./rs-hero-status";
 import "./rs-climate-mode-selector";
@@ -30,6 +31,7 @@ import "../components/shared/rs-edit-dialog";
 import "../components/shared/rs-info-icon";
 import { localize } from "../utils/localize";
 import { fireSaveStatus } from "../utils/events";
+import { formatMode } from "../utils/room-state";
 import { resolveHeatingSystemType } from "../utils/device-utils";
 import type { RsOverrideSection } from "./rs-override-section";
 
@@ -202,6 +204,56 @@ export class RsRoomDetail extends LitElement {
     .helper-link:hover {
       text-decoration: underline;
     }
+
+    .zone-device {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 4px 0;
+    }
+    .zone-device-icon {
+      color: var(--secondary-text-color);
+      --mdc-icon-size: 24px;
+    }
+    .zone-device-main {
+      flex: 1;
+      min-width: 0;
+    }
+    .zone-device-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--primary-text-color);
+    }
+    .zone-device-name.missing {
+      color: var(--error-color, #d32f2f);
+    }
+    .zone-device-sub {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+    }
+    .zone-device-state {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 2px 10px;
+      border-radius: 10px;
+      background: var(--secondary-background-color);
+      color: var(--secondary-text-color);
+      white-space: nowrap;
+    }
+    .zone-device-state.mode-cooling {
+      color: var(--info-color, #2196f3);
+      background: rgba(33, 150, 243, 0.12);
+    }
+    .zone-device-state.mode-heating {
+      color: var(--warning-color, #ff9800);
+      background: rgba(255, 152, 0, 0.12);
+    }
+    .zone-device-hint {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      line-height: 1.4;
+      margin: 10px 0 0;
+    }
   `;
 
   connectedCallback() {
@@ -329,10 +381,64 @@ export class RsRoomDetail extends LitElement {
     }
     this._dirty = false;
 
-    // Unconfigured rooms open the device-edit dialog automatically.
-    if (this._devices.length === 0 && this._editing === null) {
+    // Nudge genuinely-blank, controllable rooms to add a device on first open.
+    // Skip rooms that are intentionally device-free: outdoor areas, rooms that
+    // already have a temperature sensor, and rooms assigned to a priority zone
+    // (sensor-only by design — the thermostat lives in Settings → Priority
+    // Zones, not here).
+    if (
+      this._devices.length === 0 &&
+      this._editing === null &&
+      !this._isOutdoor &&
+      !this._selectedTempSensor &&
+      !this._inPriorityZone()
+    ) {
       this._editing = "devices";
     }
+  }
+
+  private _inPriorityZone(): boolean {
+    return this._roomZone() !== null;
+  }
+
+  private _roomZone(): PriorityZone | null {
+    const areaId = this.area?.area_id;
+    if (!areaId) return null;
+    return this.priorityZones.find((z) => (z.zone_rooms ?? []).includes(areaId)) ?? null;
+  }
+
+  /** Read-only display of the zone's thermostat for a sensor-only zone room. */
+  private _renderZoneDevice() {
+    const zone = this._roomZone();
+    if (!zone) return nothing;
+    const l = this.hass.language;
+    const eid = zone.thermostat_entity;
+    const state = eid ? this.hass.states[eid] : undefined;
+    const name = (state?.attributes?.friendly_name as string) || eid || "—";
+    const missing = eid && !state;
+    // Live conditioning + priority state come from the room's own live data
+    // (backend stamps zone rooms with the thermostat's current mode).
+    const live = this.config?.live;
+    const mode = live?.mode ?? "idle";
+    const forcing = !!live?.zone_priority_active;
+
+    return html`
+      <div class="zone-device">
+        <ha-icon icon="mdi:thermostat" class="zone-device-icon"></ha-icon>
+        <div class="zone-device-main">
+          <div class="zone-device-name ${missing ? "missing" : ""}">${name}</div>
+          <div class="zone-device-sub">
+            ${localize("room.zone_device.managed_by", l).replace("{zone}", zone.name || zone.id)}
+          </div>
+        </div>
+        <span class="zone-device-state mode-${mode}">
+          ${forcing
+            ? localize(mode === "heating" ? "card.priority_heating" : "card.priority_cooling", l)
+            : formatMode(mode as RoomMode, l)}
+        </span>
+      </div>
+      <p class="zone-device-hint">${localize("room.zone_device.hint", l)}</p>
+    `;
   }
 
   private _openEdit = (section: EditableSection) => () => {
@@ -458,26 +564,42 @@ export class RsRoomDetail extends LitElement {
               `
             : nothing}
           ${!this._isOutdoor
+            ? this._inPriorityZone() && this._devices.length === 0
+              ? html`
+                  <rmc-section-card
+                    icon="mdi:power-plug"
+                    .heading=${localize("room.section.devices", this.hass.language)}
+                  >
+                    <rmc-info-icon
+                      slot="header-extras"
+                      .text=${localize("room.zone_device.info", this.hass.language)}
+                    ></rmc-info-icon>
+                    ${this._renderZoneDevice()}
+                  </rmc-section-card>
+                `
+              : html`
+                  <rmc-section-card
+                    icon="mdi:power-plug"
+                    .heading=${localize("room.section.devices", this.hass.language)}
+                    editable
+                    @edit-click=${this._openEdit("devices")}
+                  >
+                    <rmc-device-section
+                      .hass=${this.hass}
+                      .area=${this.area}
+                      .editing=${false}
+                      .devices=${this._devices}
+                      .selectedTempSensor=${this._selectedTempSensor}
+                      .valveProtectionExclude=${this._valveProtectionExclude}
+                      .valveProtectionEnabled=${this.valveProtectionEnabled}
+                      @device-changed=${this._onDeviceChanged}
+                      @valve-protection-exclude-toggle=${this._onValveProtectionExcludeToggle}
+                    ></rmc-device-section>
+                  </rmc-section-card>
+                `
+            : nothing}
+          ${!this._isOutdoor
             ? html`
-                <rmc-section-card
-                  icon="mdi:power-plug"
-                  .heading=${localize("room.section.devices", this.hass.language)}
-                  editable
-                  @edit-click=${this._openEdit("devices")}
-                >
-                  <rmc-device-section
-                    .hass=${this.hass}
-                    .area=${this.area}
-                    .editing=${false}
-                    .devices=${this._devices}
-                    .selectedTempSensor=${this._selectedTempSensor}
-                    .valveProtectionExclude=${this._valveProtectionExclude}
-                    .valveProtectionEnabled=${this.valveProtectionEnabled}
-                    @device-changed=${this._onDeviceChanged}
-                    @valve-protection-exclude-toggle=${this._onValveProtectionExcludeToggle}
-                  ></rmc-device-section>
-                </rmc-section-card>
-
                 <rmc-section-card
                   icon="mdi:thermometer"
                   .heading=${localize("room.section.sensors", this.hass.language)}
