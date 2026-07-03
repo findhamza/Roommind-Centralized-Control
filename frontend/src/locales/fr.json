@@ -614,5 +614,9 @@
   "single_zone.rooms_label": "Pièces de cette zone",
   "single_zone.rooms_empty": "Aucune pièce affectée.",
   "single_zone.rooms_hint": "Affectez les pièces et marquez les pièces prioritaires (★) depuis la page de chaque pièce → Zone prioritaire.",
-  "single_zone.advanced": "Réglages avancés"
+  "single_zone.advanced": "Réglages avancés",
+  "single_zone.deadband": "Zone morte de bascule Auto (chauffage/clim)",
+  "single_zone.deadband_hint": "Utilisé uniquement quand le thermostat est en mode heat_cool/auto. RoomMind maintient la consigne forcée au moins à cette distance de la consigne opposée pour que le thermostat ne change jamais de mode ni ne réajuste l'autre consigne. Réglez-la sur (ou juste au-dessus de) la zone morte de bascule de votre thermostat. Ignoré en mode chauffage ou clim seul.",
+  "single_zone.band_deadband": "Zone morte",
+  "single_zone.band_deadband_hint": "Écart minimal maintenu entre les consignes de chauffage et de clim."
 }

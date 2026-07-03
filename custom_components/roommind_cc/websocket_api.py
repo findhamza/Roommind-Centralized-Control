@@ -20,6 +20,7 @@ from .const import (
     DEFAULT_CONFLICT_RESOLUTION,
     DEFAULT_ECO_COOL,
     DEFAULT_ECO_HEAT,
+    DEFAULT_SZ_BAND_DEADBAND,
     DEFAULT_SZ_COOL_START_THRESHOLD,
     DEFAULT_SZ_COOL_STOP_THRESHOLD,
     DEFAULT_SZ_HEAT_START_THRESHOLD,
@@ -210,6 +211,9 @@ PRIORITY_ZONE_SCHEMA = vol.Schema(
         ),
         vol.Optional("min_off_minutes", default=DEFAULT_SZ_MIN_OFF_MINUTES): vol.All(
             vol.Coerce(int), vol.Range(min=1, max=60)
+        ),
+        vol.Optional("band_deadband", default=DEFAULT_SZ_BAND_DEADBAND): vol.All(
+            vol.Coerce(float), vol.Range(min=0.0, max=5.0)
         ),
         vol.Optional("dynamic_bias", default=True): bool,
         vol.Optional("priority_wins", default=False): bool,

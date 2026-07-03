@@ -189,6 +189,7 @@ DEFAULT_SZ_MAIN_MIN_TEMP = 20.0  # °C never cool the thermostat/main area below
 DEFAULT_SZ_MAIN_MAX_TEMP = 26.0  # °C never heat the thermostat/main area above this
 DEFAULT_SZ_MIN_RUN_MINUTES = 10  # min forcing duration before setpoint restoration
 DEFAULT_SZ_MIN_OFF_MINUTES = 10  # cooldown after restoration before a new forcing session
+DEFAULT_SZ_BAND_DEADBAND = 1.0  # °C gap kept between heat/cool setpoints on heat_cool thermostats
 SZ_MIN_BIAS = 0.5  # °C floor for the dynamic bias (must move the thermostat meaningfully)
 SZ_TRIGGER_MARGIN = 0.2  # °C setpoint must be at least this far past the thermostat temp to force runtime
 SZ_SETPOINT_DEADBAND = 0.5  # °C min change before re-sending a deeper setpoint mid-session
@@ -198,6 +199,15 @@ SZ_RATE_RATIO_MAX = 4.0
 SZ_MIN_RATE_OBSERVATIONS = 20  # active EKF samples before a learned rate is trusted
 SZ_MANUAL_CHANGE_TOLERANCE = 0.5  # °C setpoint drift from our command → user override, abort
 SZ_MANUAL_GRACE_SECONDS = 90.0  # ignore setpoint drift right after commanding (device settle time)
+# Outcome-based safety net: if the thermostat is actually doing the OPPOSITE of
+# what we're forcing (heating while we force cooling, or vice versa) for longer
+# than this, stand down and restore — regardless of hvac_mode. The window
+# tolerates a heat↔cool changeover transient before aborting.
+SZ_OPPOSITE_ACTION_GRACE_SECONDS = 180.0
+# Absolute hard setpoint limits — a final backstop so a config or math error can
+# never command the thermostat somewhere unsafe, independent of comfort bounds.
+SZ_ABS_MIN_SETPOINT = 7.0  # °C (~45°F)
+SZ_ABS_MAX_SETPOINT = 35.0  # °C (~95°F)
 
 # Compressor group master device — conflict resolution strategies
 CONFLICT_RESOLUTION_HEATING_PRIORITY = "heating_priority"

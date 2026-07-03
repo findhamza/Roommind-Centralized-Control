@@ -2328,6 +2328,7 @@ class RoomMindCoordinator(DataUpdateCoordinator):
         if state is not None and state.state not in ("unavailable", "unknown"):
             snap.thermostat_available = True
             snap.thermostat_hvac_mode = state.state
+            snap.thermostat_hvac_action = state.attributes.get("hvac_action")
             snap.thermostat_current_temp = _conv(state.attributes.get("current_temperature"))
             snap.thermostat_setpoint = _conv(state.attributes.get("temperature"))
             snap.thermostat_setpoint_low = _conv(state.attributes.get("target_temp_low"))

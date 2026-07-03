@@ -47,6 +47,7 @@ export const ZONE_DEFAULTS: Omit<PriorityZone, "id"> = {
   main_max_temp: 26.0,
   min_run_minutes: 10,
   min_off_minutes: 10,
+  band_deadband: 1.0,
   dynamic_bias: true,
   priority_wins: false,
   restore_behavior: "restore",
@@ -324,6 +325,17 @@ export class RsSettingsSingleZone extends RsSettingsBase {
                   )}
                   ${this._absTempField("single_zone.main_max_temp", sz.main_max_temp, (v) =>
                     this._updateZone(idx, { main_max_temp: Math.max(v, sz.main_min_temp + 0.5) }),
+                  )}
+                </div>
+              </div>
+
+              <!-- Auto (heat/cool) changeover deadband -->
+              <div class="settings-section">
+                <span class="section-label">${localize("single_zone.deadband", l)}</span>
+                <div class="field-hint">${localize("single_zone.deadband_hint", l)}</div>
+                <div class="number-fields">
+                  ${this._deltaField("single_zone.band_deadband", sz.band_deadband, 0, 5, (v) =>
+                    this._updateZone(idx, { band_deadband: v }),
                   )}
                 </div>
               </div>

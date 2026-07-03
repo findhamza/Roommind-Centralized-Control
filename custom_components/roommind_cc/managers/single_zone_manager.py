@@ -32,6 +32,7 @@ from time import monotonic
 from ..const import (
     DEFAULT_OUTDOOR_COOLING_MIN,
     DEFAULT_OUTDOOR_HEATING_MAX,
+    DEFAULT_SZ_BAND_DEADBAND,
     DEFAULT_SZ_COOL_START_THRESHOLD,
     DEFAULT_SZ_COOL_STOP_THRESHOLD,
     DEFAULT_SZ_HEAT_START_THRESHOLD,
@@ -42,6 +43,8 @@ from ..const import (
     DEFAULT_SZ_MIN_OFF_MINUTES,
     DEFAULT_SZ_MIN_RUN_MINUTES,
     DEFAULT_SZ_STATIC_BIAS,
+    SZ_ABS_MAX_SETPOINT,
+    SZ_ABS_MIN_SETPOINT,
     SZ_CONDITION_ALWAYS,
     SZ_CONDITION_OCCUPIED,
     SZ_CONDITION_SCHEDULE,
@@ -50,6 +53,7 @@ from ..const import (
     SZ_MANUAL_CHANGE_TOLERANCE,
     SZ_MANUAL_GRACE_SECONDS,
     SZ_MIN_BIAS,
+    SZ_OPPOSITE_ACTION_GRACE_SECONDS,
     SZ_RATE_RATIO_MAX,
     SZ_RATE_RATIO_MIN,
     SZ_SETPOINT_DEADBAND,
@@ -111,6 +115,7 @@ class SingleZoneConfig:
     main_max_temp: float = DEFAULT_SZ_MAIN_MAX_TEMP
     min_run_seconds: float = DEFAULT_SZ_MIN_RUN_MINUTES * 60
     min_off_seconds: float = DEFAULT_SZ_MIN_OFF_MINUTES * 60
+    band_deadband: float = DEFAULT_SZ_BAND_DEADBAND
     dynamic_bias: bool = True
     priority_wins: bool = False
     restore_behavior: str = "restore"
@@ -154,6 +159,7 @@ class SingleZoneConfig:
             main_max_temp=float(sz.get("main_max_temp", DEFAULT_SZ_MAIN_MAX_TEMP)),
             min_run_seconds=float(sz.get("min_run_minutes", DEFAULT_SZ_MIN_RUN_MINUTES)) * 60,
             min_off_seconds=float(sz.get("min_off_minutes", DEFAULT_SZ_MIN_OFF_MINUTES)) * 60,
+            band_deadband=float(sz.get("band_deadband", DEFAULT_SZ_BAND_DEADBAND)),
             dynamic_bias=bool(sz.get("dynamic_bias", True)),
             priority_wins=bool(sz.get("priority_wins", False)),
             restore_behavior=sz.get("restore_behavior", "restore"),
@@ -185,6 +191,7 @@ class ZoneSnapshot:
 
     thermostat_available: bool = False
     thermostat_hvac_mode: str | None = None
+    thermostat_hvac_action: str | None = None  # "heating"/"cooling"/"idle"/... — what it's doing now
     thermostat_current_temp: float | None = None
     thermostat_setpoint: float | None = None  # "temperature" attribute
     thermostat_setpoint_low: float | None = None  # heat_cool thermostats
@@ -272,6 +279,9 @@ class SingleZoneManager:
         self._commanded: float | None = None
         self._session_started: float = 0.0
         self._last_session_end: float | None = None
+        # Outcome-based safety net: when did the thermostat start doing the
+        # opposite of what we're forcing (mode-agnostic). None = not opposite.
+        self._opposite_since: float | None = None
 
     @property
     def forcing(self) -> bool:
@@ -373,6 +383,7 @@ class SingleZoneManager:
         self._nominal = nominal
         self._commanded = sp
         self._session_started = now
+        self._opposite_since = None
 
         status = SZ_STATUS_FORCING_COOLING if best.direction == DIRECTION_COOL else SZ_STATUS_FORCING_HEATING
         _LOGGER.info(
@@ -472,9 +483,35 @@ class SingleZoneManager:
         if stop_reason is None and direction not in self._allowed_directions(config, snapshot):
             stop_reason = "outdoor temperature gate closed"
 
+        # Main area now needs the opposite (setpoint-based) — stand down rather
+        # than fight a call we can't win.
+        if stop_reason is None:
+            needs = self._needs_opposite(snapshot, direction)
+            if needs is not None:
+                stop_reason = needs
+                protection = True
+
+        # Outcome-based safety net (mode-agnostic): the thermostat is actually
+        # doing the OPPOSITE of what we're forcing. Tolerate a heat↔cool
+        # changeover transient, then abort and restore — this is a safety stop
+        # that bypasses the minimum-runtime hold (there's no cool call to
+        # short-cycle; the unit is doing the other thing entirely).
+        safety_abort = False
+        if stop_reason is None:
+            if self._observed_opposite(snapshot, direction):
+                if self._opposite_since is None:
+                    self._opposite_since = now
+                elif now - self._opposite_since >= SZ_OPPOSITE_ACTION_GRACE_SECONDS:
+                    other = "heating" if direction == DIRECTION_COOL else "cooling"
+                    stop_reason = f"thermostat is {other} despite the forced setpoint — standing down for safety"
+                    protection = True
+                    safety_abort = True
+            else:
+                self._opposite_since = None
+
         if stop_reason is not None or best is None:
             run_elapsed = now - self._session_started
-            if run_elapsed < config.min_run_seconds:
+            if not safety_abort and run_elapsed < config.min_run_seconds:
                 # Hold for compressor protection; keep the current setpoint.
                 dec = self._forcing_decision(best, protection)
                 dec.min_run_lockout = True
@@ -557,6 +594,7 @@ class SingleZoneManager:
         _LOGGER.info("Single-zone: ending forced %sing — %s", self._direction, reason)
         self._forcing = False
         self._last_session_end = now
+        self._opposite_since = None
         nominal = self._nominal
         self._nominal = None
         self._commanded = None
@@ -631,6 +669,47 @@ class SingleZoneManager:
     # Setpoint computation
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _needs_opposite(snapshot: ZoneSnapshot, direction: str) -> str | None:
+        """Reason the thermostat's own area needs the opposite (setpoint-based).
+
+        On a heat_cool/auto thermostat the main area sitting at its heat
+        setpoint means a heat call is imminent — forcing cooling would fight
+        it. Symmetric for heating. Setpoint comparison, so it works even when
+        the device doesn't report hvac_action.
+        """
+        main = snapshot.main_temp
+        if direction == DIRECTION_COOL:
+            low = snapshot.thermostat_setpoint_low
+            if low is not None and main is not None and main <= low + SZ_TRIGGER_MARGIN:
+                return "main area is at its heat setpoint — forcing cooling would fight the heat call"
+        else:
+            high = snapshot.thermostat_setpoint_high
+            if high is not None and main is not None and main >= high - SZ_TRIGGER_MARGIN:
+                return "main area is at its cool setpoint — forcing heating would fight the cool call"
+        return None
+
+    @staticmethod
+    def _observed_opposite(snapshot: ZoneSnapshot, direction: str) -> bool:
+        """True when the thermostat is *actually doing* the opposite right now.
+
+        Mode-agnostic outcome signal: whatever the reported hvac_mode or our
+        model says, if the unit reports it's heating while we force cooling
+        (or cooling while we force heating), that's ground truth.
+        """
+        action = snapshot.thermostat_hvac_action
+        if direction == DIRECTION_COOL:
+            return action == "heating"
+        return action == "cooling"
+
+    def _start_conflict(self, snapshot: ZoneSnapshot, direction: str) -> str | None:
+        """Reason NOT to begin forcing *direction* (both signals, no grace)."""
+        if self._observed_opposite(snapshot, direction):
+            other = "heating" if direction == DIRECTION_COOL else "cooling"
+            verb = "cooling" if direction == DIRECTION_COOL else "heating"
+            return f"thermostat is {other} its own area — one system can't force {verb} at the same time"
+        return self._needs_opposite(snapshot, direction)
+
     def _compute_setpoint(
         self,
         config: SingleZoneConfig,
@@ -655,6 +734,16 @@ class SingleZoneManager:
         if main is None:
             return None, None, None, None, False, "no main-area temperature available"
 
+        # Shared-system guard (start only): one air handler can't cool the
+        # priority room while it's heating its own area (heat_cool/auto).
+        # Refuse the losing fight instead of biasing a setpoint that does
+        # nothing (or worse). Mid-session conflicts are handled with a settle
+        # window in _evaluate_forcing.
+        if not self._forcing:
+            conflict = self._start_conflict(snapshot, demand.direction)
+            if conflict is not None:
+                return None, None, None, None, True, conflict
+
         # Soft arbitration before starting: don't force when the main area is
         # already past its own comfort target (unless priority_wins).
         if not config.priority_wins and not self._forcing:
@@ -676,11 +765,23 @@ class SingleZoneManager:
         if demand.direction == DIRECTION_COOL:
             sp = min(nominal, main) - bias
             floor = max(nominal - config.max_cool_offset, config.main_min_temp)
+            # On a heat_cool thermostat keep the cool setpoint above the heat
+            # setpoint by the changeover deadband so lowering it can never
+            # invert the band (which would make the device heat instead of
+            # cool) or make the thermostat re-adjust the heat setpoint.
+            if snapshot.thermostat_setpoint_low is not None:
+                floor = max(floor, snapshot.thermostat_setpoint_low + config.band_deadband)
             sp = max(sp, floor)
         else:
             sp = max(nominal, main) + bias
             ceiling = min(nominal + config.max_heat_offset, config.main_max_temp)
+            if snapshot.thermostat_setpoint_high is not None:
+                ceiling = min(ceiling, snapshot.thermostat_setpoint_high - config.band_deadband)
             sp = min(sp, ceiling)
+
+        # Absolute backstop: never command outside a sane range, whatever the
+        # config or math produced.
+        sp = max(SZ_ABS_MIN_SETPOINT, min(SZ_ABS_MAX_SETPOINT, sp))
 
         # Authority check: the clamped setpoint must still be past the
         # thermostat's *own* reading, or the HVAC will never fire.
@@ -764,13 +865,18 @@ class SingleZoneManager:
 
     @staticmethod
     def _nominal_for(direction: str, snapshot: ZoneSnapshot) -> tuple[float | None, str]:
-        """Return (nominal setpoint °C, slot) for *direction* on this thermostat."""
-        if snapshot.thermostat_setpoint is not None:
-            return snapshot.thermostat_setpoint, SLOT_TEMPERATURE
+        """Return (nominal setpoint °C, slot) for *direction* on this thermostat.
+
+        Dual-setpoint (heat_cool/auto) thermostats often ALSO expose a single
+        ``temperature`` attribute; writing that back does nothing useful, so
+        prefer the direction's own high/low slot whenever it exists.
+        """
         if direction == DIRECTION_COOL and snapshot.thermostat_setpoint_high is not None:
             return snapshot.thermostat_setpoint_high, SLOT_HIGH
         if direction == DIRECTION_HEAT and snapshot.thermostat_setpoint_low is not None:
             return snapshot.thermostat_setpoint_low, SLOT_LOW
+        if snapshot.thermostat_setpoint is not None:
+            return snapshot.thermostat_setpoint, SLOT_TEMPERATURE
         return None, SLOT_TEMPERATURE
 
     @staticmethod

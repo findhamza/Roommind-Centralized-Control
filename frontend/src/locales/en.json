@@ -614,5 +614,9 @@
   "single_zone.rooms_label": "Rooms in this zone",
   "single_zone.rooms_empty": "No rooms assigned yet.",
   "single_zone.rooms_hint": "Assign rooms and mark priority rooms (★) from each room's page → Priority Zone.",
-  "single_zone.advanced": "Advanced tuning"
+  "single_zone.advanced": "Advanced tuning",
+  "single_zone.deadband": "Auto (heat/cool) changeover deadband",
+  "single_zone.deadband_hint": "Only used when the thermostat runs in heat_cool/auto mode. RoomMind keeps the forced setpoint at least this far from the opposite setpoint so the thermostat never flips modes or re-adjusts the other setpoint. Set it to match (or slightly above) your thermostat's own changeover deadband. Ignored in single heat or cool mode.",
+  "single_zone.band_deadband": "Deadband",
+  "single_zone.band_deadband_hint": "Minimum gap kept between the heat and cool setpoints."
 }

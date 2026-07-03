@@ -120,6 +120,7 @@ export interface PriorityZone {
   main_max_temp: number;
   min_run_minutes: number;
   min_off_minutes: number;
+  band_deadband: number;
   dynamic_bias: boolean;
   priority_wins: boolean;
   restore_behavior: "restore" | "leave";

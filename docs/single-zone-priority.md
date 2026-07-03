@@ -52,7 +52,29 @@ on the room's *resolved* heat/cool targets.
 6. **Arbitration** — if the main area drifts more than 1.5°C past its own
    target, forcing stops early — unless `priority_wins: true`, in which case
    only the hard `main_min_temp`/`main_max_temp` bounds apply.
-7. **Manual override** — if you change a thermostat setpoint by hand during
+7. **Shared-system guard (Auto / heat_cool)** — one central system can only
+   heat *or* cool at once. On a `heat_cool`/`auto` thermostat, RoomMind will
+   not force cooling while the system is heating its own area (or about to,
+   because the main area sits at its heat setpoint) — and vice versa. It
+   stands down with an explanatory reason rather than fighting a call it can't
+   win. So you can leave the thermostat in Auto year-round (set-and-forget):
+   RoomMind forces cooling when the house isn't heating, forces heating when
+   it isn't cooling, and safely defers otherwise. On these thermostats the
+   forced setpoint is also kept the **changeover deadband** away from the
+   opposite setpoint so it can never invert the band or make the thermostat
+   re-adjust the other setpoint — set `band_deadband` to match (or slightly
+   exceed) your thermostat's own auto-changeover deadband. This setting is
+   ignored in single `cool`/`heat` mode, where no conflict is possible.
+8. **Outcome safety net (mode-agnostic)** — whatever the reported mode, if the
+   thermostat is *actually* doing the opposite of what's being forced (it
+   reports heating while forcing cooling, or vice versa) for longer than a
+   short changeover window, the zone aborts and restores — bypassing the
+   minimum-runtime hold, because safety outranks compressor protection. This
+   is a belt-and-suspenders check on the real `hvac_action`, so a misreported
+   mode or an unexpected device response can't leave RoomMind forcing the
+   wrong way. A final absolute setpoint clamp (7–35 °C / 45–95 °F) guards
+   against any config or math error regardless of the comfort bounds.
+9. **Manual override** — if you change a thermostat setpoint by hand during
    a session, that zone stands down immediately without restoring.
 
 A zone never changes its thermostat's hvac_mode: cooling is only forced when
@@ -125,6 +147,7 @@ one-entry list with id `zone_1`.
       "main_max_temp": 26.0,              // °C hard ceiling (~79°F)
       "min_run_minutes": 10,
       "min_off_minutes": 10,
+      "band_deadband": 1.0,               // °C gap for heat_cool/auto thermostats (match device changeover)
       "dynamic_bias": true,
       "priority_wins": false,
       "restore_behavior": "restore"       // restore | leave
